@@ -1,3 +1,9 @@
+
+
+- [Dictionary and packaging software developer instructions](#dictionary-and-packaging-software-developer-instructions)
+   - [Update /bin used by dictionary users](#update-/bin-used-by-dictionary-users)
+   - [Links to general comments](#links-to-general-comments)
+
 # dict-tools
 Tools to process (mainly Indic) dictionaries.
 
