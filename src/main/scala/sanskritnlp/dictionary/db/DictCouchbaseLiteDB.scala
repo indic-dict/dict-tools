@@ -6,6 +6,7 @@ import com.couchbase.lite.auth.BasicAuthenticator
 import dbSchema.common.ScriptRendering
 import dbSchema.dictionary.{DictEntry, DictLocation}
 import dbUtils.{collectionUtils, jsonHelper}
+import sanskrit_coders.db.couchbaseLite.couchbaseLiteUtils
 import sanskritnlp.dictionary.BabylonDictionary
 import stardict_sanskrit.babylonProcessor
 
@@ -25,8 +26,6 @@ class DictCouchbaseLiteDB() {
   val log = LoggerFactory.getLogger(getClass.getName)
   var dictEntriesDb: Database = null
   var dbManager: Manager = null
-  val replicationUrl = "http://127.0.0.1:5984/"
-  var replicationPw = ""
 
   def openDatabasesLaptop() = {
     dbManager = new Manager(new JavaContext("data") {
@@ -36,44 +35,11 @@ class DictCouchbaseLiteDB() {
       }
     }, Manager.DEFAULT_OPTIONS)
     dbManager.setStorageType("ForestDB")
-    dictEntriesDb = dbManager.getDatabase(s"dict_entries")
-  }
-
-  def replicate(database: Database) = {
-    import java.net.URL
-
-    import com.couchbase.lite.replicator.Replication
-    val url = new URL(replicationUrl + database.getName)
-    log.info("replicating to " + url.toString())
-    if (replicationPw.isEmpty) {
-      log info "Enter password"
-      replicationPw = StdIn.readLine().trim
-    }
-    val auth = new BasicAuthenticator("vvasuki", replicationPw)
-
-    val push = database.createPushReplication(url)
-    push.setAuthenticator(auth)
-    push.setContinuous(true)
-    push.addChangeListener(new Replication.ChangeListener() {
-      override def changed(event: Replication.ChangeEvent): Unit = {
-        log.info(event.toString)
-      }
-    })
-    push.start
-
-    val pull = database.createPullReplication(url)
-    //    pull.setContinuous(true)
-    pull.setAuthenticator(auth)
-    pull.addChangeListener(new Replication.ChangeListener() {
-      override def changed(event: Replication.ChangeEvent): Unit = {
-        log.info(event.toString)
-      }
-    })
-    pull.start
+    dictEntriesDb = dbManager.getDatabase("dict_entries")
   }
 
   def replicateAll() = {
-    replicate(dictEntriesDb)
+    couchbaseLiteUtils.replicate(dictEntriesDb)
   }
 
 
@@ -81,26 +47,8 @@ class DictCouchbaseLiteDB() {
     dictEntriesDb.close()
   }
 
-  def purgeDatabase(database: Database) = {
-    val result = database.createAllDocumentsQuery().run
-    val docObjects = result.iterator().asScala.map(_.getDocument).map(_.purge())
-  }
-
   def purgeAll = {
-    purgeDatabase(dictEntriesDb)
-  }
-
-  def updateDocument(document: Document, jsonMap: Map[String, Object]) = {
-    document.update(new Document.DocumentUpdater() {
-      override def update(newRevision: UnsavedRevision): Boolean = {
-        val properties = newRevision.getUserProperties
-        val jsonMapJava = collectionUtils.toJava(jsonMap).asInstanceOf[java.util.Map[String, Object]]
-        //        log debug jsonMapJava.getClass.toString
-        properties.putAll(jsonMapJava)
-        newRevision.setUserProperties(properties)
-        true
-      }
-    })
+    couchbaseLiteUtils.purgeDatabase(dictEntriesDb)
   }
 
   def updateDictEntry(dictEntry: DictEntry): Boolean = {
@@ -108,7 +56,7 @@ class DictCouchbaseLiteDB() {
     log debug (jsonMap.toString())
     //    sys.exit()
     val document = dictEntriesDb.getDocument(dictEntry.getKey)
-    updateDocument(document, jsonMap)
+    couchbaseLiteUtils.updateDocument(document, jsonMap)
     return true
   }
 
@@ -124,23 +72,9 @@ class DictCouchbaseLiteDB() {
     })
   }
 
-  def listCaseClassObjects(query: Query) = {
-    val result = query.run
-    val docObjects = result.iterator().asScala.map(_.getDocument).map(doc => {
-      val jsonMap = collectionUtils.toScala(doc.getUserProperties).asInstanceOf[mutable.Map[String, _]]
-      //      val jsonMap = doc.getUserProperties
-      jsonHelper.fromJsonMap(jsonMap)
-    })
-    //    log info s"We have ${quotes.length} quotes."
-    docObjects.foreach(quoteText => {
-      log info quoteText.toString
-      log info jsonHelper.getJsonMap(quoteText).toString()
-    })
-  }
-
   def listAllCaseClassObjects = {
     //    listCaseClassObjects(quoteDb.createAllDocumentsQuery)
-    listCaseClassObjects(dictEntriesDb.createAllDocumentsQuery)
+    couchbaseLiteUtils.listCaseClassObjects(dictEntriesDb.createAllDocumentsQuery)
   }
 
 
@@ -168,8 +102,8 @@ object dbMakerStardictSanskrit {
 
   def updateDb = {
     var workingDir = "/home/vvasuki/stardict-sanskrit/"
-    val dicts = babylonProcessor.getRecursiveListOfBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/sa-entries/"))
-    dicts.take(5).map(x => {
+    val dicts = babylonProcessor.getRecursiveListOfBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/"))
+    dicts.dropWhile(x => !x.dict_name.contains("Bohtlingk-and-Roth")).map(x => {
       log info x.toString()
       dictDb.dumpDictionary(babylonDictionary = x)
     })
