@@ -103,7 +103,7 @@ object dbMakerStardictSanskrit {
   def updateDb = {
     var workingDir = "/home/vvasuki/stardict-sanskrit/"
     val dicts = babylonProcessor.getRecursiveListOfBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/"))
-    dicts.dropWhile(x => !x.dict_name.contains("Bohtlingk-and-Roth")).map(x => {
+    dicts.map(x => {
       log info x.toString()
       dictDb.dumpDictionary(babylonDictionary = x)
     })
