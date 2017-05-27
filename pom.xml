@@ -8,6 +8,7 @@
         A collection of scala classes for some basic dictionary and wiki manipulation, contributed by the open source Sanskrit NLP project and friends.
         Some notable facilities:
         * Deal with babylon dictionaries.
+        * Dump words to a couchdb database.
         * Use bots to write to wiki projects (wiktionary, wikisource etc..).
         * Iterate through output of OCR programs such as SanskritOCR.
         Contributions and suggestions are invited at https://github.com/sanskrit-coders/stardict-sanskrit . (Sister projects there may also be of interest.)
@@ -28,9 +29,9 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/sanskrit-coders/stardict-sanskrit</url>
-        <connection>scm:git:git://github.com/sanskrit-coders/stardict-sanskrit.git</connection>
-        <developerConnection>scm:git:git@github.com:sanskrit-coders/stardict-sanskrit.git</developerConnection>
+        <url>https://github.com/sanskrit-coders/dict-tools</url>
+        <connection>scm:git:git://github.com/sanskrit-coders/dict-tools.git</connection>
+        <developerConnection>scm:git:git@github.com:sanskrit-coders/dict-tools.git</developerConnection>
     </scm>
 
     <developers>
@@ -82,6 +83,11 @@
             <version>1.1</version>
         </dependency>
         <dependency>
+            <groupId>com.github.sanskrit-coders</groupId>
+            <artifactId>db-interface</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>0.9.29</version>
@@ -91,23 +97,20 @@
             <artifactId>logback-core</artifactId>
             <version>0.9.29</version>
         </dependency>
-
-        <!--
-         Evaluation: https://www.mediawiki.org/wiki/API:Client_code/Evaluations/Java_Wiki_Bot_Framework_(JWBF)
-         Javadoc here: http://jwbf.sourceforge.net/doc/ , especially Article class.
-         Parsers (very complicated):
-         https://www.mediawiki.org/wiki/Alternative_parsers
-         http://stackoverflow.com/questions/11612118/java-wikitext-parser
-        -->
         <dependency>
-            <groupId>net.sourceforge</groupId>
-            <artifactId>jwbf</artifactId>
-            <version>3.0.0</version>
+            <groupId>com.ibm</groupId>
+            <artifactId>couchdb-scala_2.11</artifactId>
+            <version>0.7.2</version>
         </dependency>
         <dependency>
-            <groupId>jstl</groupId>
-            <artifactId>jstl</artifactId>
-            <version>1.2</version>
+            <groupId>com.couchbase.lite</groupId>
+            <artifactId>couchbase-lite-java</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.couchbase.lite</groupId>
+            <artifactId>couchbase-lite-java-forestdb</artifactId>
+            <version>1.4.0</version>
         </dependency>
     </dependencies>
 

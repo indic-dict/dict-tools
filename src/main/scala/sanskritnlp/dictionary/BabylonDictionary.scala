@@ -9,7 +9,7 @@ import scala.collection.immutable.HashMap
 import scala.collection.mutable
 import scala.io.{BufferedSource, Source}
 
-class BabylonDictionary(name_in: String, source_in: String = "", head_language: String) {
+class BabylonDictionary(name_in: String, source_in: String = "", head_language: String) extends Iterator[(Seq[String], String)] {
   var wordToLocations: HashMap[String, ListBuffer[Int]] = new HashMap[String, ListBuffer[Int]]
   var wordToMeanings = new HashMap[String, ListBuffer[String]]
   val log = LoggerFactory.getLogger(this.getClass)
@@ -32,14 +32,14 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
     linesIter = src.getLines.dropWhile(isHeadLine)
   }
 
-  def hasNext(): Boolean = {
+  override def hasNext(): Boolean = {
     return linesIter.hasNext
   }
 
   //  java.nio.charset.MalformedInputException: Input length = 1 implies bad character in file.
-  def next(): (Array[String], String) = {
+  override def next(): (Seq[String], String) = {
     words_taken = words_taken + 1
-    val headwords = linesIter.next().split('|')
+    val headwords = linesIter.next().split('|').toSeq
 //    log debug(headwords.mkString("|"))
 //    log debug(linesIter.hasNext.toString)
     val entry = linesIter.next
@@ -47,12 +47,6 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
     val returnTuple = (headwords, entry)
     assert(!linesIter.hasNext || linesIter.next() == "")
     return returnTuple
-  }
-
-  def take(entriesToSkip: Int) = {
-    while(hasNext() && words_taken < entriesToSkip) {
-      next()
-    }
   }
 
   def makeWordToLocationMap(headword_pattern: String = ".+") = {
@@ -115,7 +109,6 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
       })
     }
   }
-
 }
 
 object babylonDictTest {

@@ -6,13 +6,14 @@ import org.slf4j.LoggerFactory
 import sanskritnlp.dictionary.{BabylonDictionary, babylonTools}
 import sanskritnlp.transliteration.{iast, transliterator}
 import sanskritnlp.vyAkaraNa.devanAgarI
+import stardict_sanskrit.babylonProcessor.getRecursiveListOfFiles
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.sys.process._
 
-class Dictionary(val name: String) {
+class DictionaryFolder(val name: String) {
   val log = LoggerFactory.getLogger(getClass.getName)
   var dirName: String = null
   var dirFile: File = null
@@ -130,6 +131,13 @@ trait BatchProcessor {
     these ++ these.filter(_.isDirectory).flatMap(getRecursiveListOfFiles)
   }
 
+  def getRecursiveListOfDictDirs(basePaths: Seq[String]): Seq[DictionaryFolder] = {
+    val babylonFiles = basePaths.flatMap(basePath => getRecursiveListOfFiles(new File(basePath))).
+      filter(_.getName.matches(".*\\.babylon(_final)?"))
+    val dictionaryFolders = babylonFiles.map(x => new DictionaryFolder(x.getParentFile))
+    return dictionaryFolders
+  }
+
   def getMatchingDirectories (file_pattern: String = ".*", baseDir: String = "."): List[java.io.File] = {
     log info (s"file_pattern: ${file_pattern}")
     val baseDirFile = new File(baseDir)
@@ -141,16 +149,27 @@ trait BatchProcessor {
     return directories.toList
   }
 
-  def getMatchingDictionaries(file_pattern: String = ".*", baseDir: String = ".") = getMatchingDirectories(file_pattern, baseDir).map(new Dictionary(_))
+  def getMatchingDictionaries(file_pattern: String = ".*", baseDir: String = ".") = getMatchingDirectories(file_pattern, baseDir).map(new DictionaryFolder(_))
 
 }
 
 object babylonProcessor extends BatchProcessor{
-  override def getMatchingDictionaries(file_pattern: String, baseDir: String = "."): List[Dictionary] = {
+  override def getMatchingDictionaries(file_pattern: String, baseDir: String = "."): List[DictionaryFolder] = {
     val dictionaries = super.getMatchingDictionaries(file_pattern, baseDir).filter(_.getFinalBabylonFile != null)
     log info (s"Got ${dictionaries.filter(_.babylonFinalFile.isDefined).length} babylon_final files")
     log info (s"Got ${dictionaries.filter(x => x.babylonFile.isDefined && !x.babylonFinalFile.isDefined).length}  dicts without babylon_final files but with babylon file.")
     return dictionaries
+  }
+
+  def getRecursiveListOfBabylonDicts(basePaths: Seq[String]): Seq[BabylonDictionary] = {
+    val babylonFiles = getRecursiveListOfDictDirs(basePaths=basePaths).map(_.getFinalBabylonFile)
+    val babylonDicts = babylonFiles.map(x => {
+      val dict = new BabylonDictionary(name_in = x.getName, head_language = "")
+      dict.fromFile(x.getCanonicalPath)
+      dict
+    })
+    log info s"Got ${babylonDicts.length} babylon files."
+    return babylonDicts
   }
 
   def fixHeadwordsInFinalFile(file_pattern: String = ".*", baseDir: String = ".", headwordTransformer: (Array[String]) => Array[String]) = {
@@ -191,17 +210,7 @@ object babylonProcessor extends BatchProcessor{
   }
 
   def getWordToDictsMapFromPaths(basePaths: Seq[String], wordPattern: String = "(\\p{IsDevanagari})+"): mutable.HashMap[String, ListBuffer[BabylonDictionary]] = {
-    val babylonFiles = basePaths.flatMap(basePath => getRecursiveListOfFiles(new File(basePath))).
-      filter(_.getName.matches(".*\\.babylon(_final)?"))
-    log info s"Got ${babylonFiles.length} babylon files."
-    val babylonFinalFiles = babylonFiles.filter(x => x.getName.matches(".*\\.babylon_final")) // || !new File(x.getParentFile.get + "_final").exists())
-    val babylonDicts = babylonFinalFiles.map(x => {
-      val dict = new BabylonDictionary(name_in = x.getName, head_language = "")
-      dict.fromFile(x.getCanonicalPath)
-      dict
-    })
-    log info s"Got ${babylonDicts.length} babylon files."
-
+    val babylonDicts = getRecursiveListOfBabylonDicts(basePaths = basePaths)
     val wordToDicts = babylonTools.mapWordToDicts(dictList=babylonDicts, headword_pattern=wordPattern)
     log info s"Got ${wordToDicts.size} words"
     return wordToDicts
@@ -265,6 +274,10 @@ object babylonProcessor extends BatchProcessor{
       destination.println(outStr)
     })
     destination.close()
+  }
+
+  def updateCouchDb(basePaths: Seq[String]) = {
+
   }
 
   def main(args: Array[String]): Unit = {
