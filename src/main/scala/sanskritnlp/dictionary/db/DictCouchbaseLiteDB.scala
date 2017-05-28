@@ -11,6 +11,7 @@ import sanskritnlp.dictionary.BabylonDictionary
 import stardict_sanskrit.babylonProcessor
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.io.StdIn
 
 //import com.couchbase.lite.{Database, Manager, JavaContext, Document, UnsavedRevision, Query, ManagerOptions}
@@ -103,10 +104,20 @@ object dbMakerStardictSanskrit {
   def updateDb = {
     var workingDir = "/home/vvasuki/stardict-sanskrit/"
     val dicts = babylonProcessor.getRecursiveListOfBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/"))
+    var exceptions = ListBuffer[String]()
+    var failedDicts = ListBuffer[BabylonDictionary]()
     dicts.map(x => {
       log info x.toString()
-      dictDb.dumpDictionary(babylonDictionary = x)
+      try {
+        dictDb.dumpDictionary(babylonDictionary = x)
+      } catch {
+        case e => {
+          exceptions.append(e.toString)
+          failedDicts.append(x)
+        }
+      }
     })
+    exceptions zip failedDicts foreach( x => log error x.toString())
   }
 
   def main(args: Array[String]): Unit = {

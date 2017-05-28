@@ -169,7 +169,7 @@ object babylonProcessor extends BatchProcessor{
       dict
     })
     log info s"Got ${babylonDicts.length} babylon files."
-    return babylonDicts
+    return babylonDicts.sortBy(_.fileLocation)
   }
 
   def fixHeadwordsInFinalFile(file_pattern: String = ".*", baseDir: String = ".", headwordTransformer: (Array[String]) => Array[String]) = {
