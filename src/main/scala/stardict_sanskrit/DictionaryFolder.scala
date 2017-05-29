@@ -2,6 +2,8 @@ package stardict_sanskrit
 
 import java.io.{File, PrintWriter}
 
+import com.davidthomasbernal.stardict.Dictionary
+import ch.qos.logback._
 import org.slf4j.LoggerFactory
 import sanskritnlp.dictionary.{BabylonDictionary, babylonTools}
 import sanskritnlp.transliteration.{iast, transliterator}
@@ -131,10 +133,10 @@ trait BatchProcessor {
     these ++ these.filter(_.isDirectory).flatMap(getRecursiveListOfFiles)
   }
 
-  def getRecursiveListOfDictDirs(basePaths: Seq[String]): Seq[DictionaryFolder] = {
+  def getRecursiveSetOfDictDirs(basePaths: Seq[String]): Set[DictionaryFolder] = {
     val babylonFiles = basePaths.flatMap(basePath => getRecursiveListOfFiles(new File(basePath))).
       filter(_.getName.matches(".*\\.babylon(_final)?"))
-    val dictionaryFolders = babylonFiles.map(x => new DictionaryFolder(x.getParentFile))
+    val dictionaryFolders = babylonFiles.map(x => new DictionaryFolder(x.getParentFile)).toSet
     return dictionaryFolders
   }
 
@@ -161,15 +163,15 @@ object babylonProcessor extends BatchProcessor{
     return dictionaries
   }
 
-  def getRecursiveListOfBabylonDicts(basePaths: Seq[String]): Seq[BabylonDictionary] = {
-    val babylonFiles = getRecursiveListOfDictDirs(basePaths=basePaths).map(_.getFinalBabylonFile)
+  def getRecursiveListOfFinalBabylonDicts(basePaths: Seq[String]): Seq[BabylonDictionary] = {
+    val babylonFiles = getRecursiveSetOfDictDirs(basePaths=basePaths).map(_.getFinalBabylonFile)
     val babylonDicts = babylonFiles.map(x => {
       val dict = new BabylonDictionary(name_in = x.getName, head_language = "")
       dict.fromFile(x.getCanonicalPath)
       dict
     })
-    log info s"Got ${babylonDicts.length} babylon files."
-    return babylonDicts.sortBy(_.fileLocation)
+    log info s"Got ${babylonDicts.size} babylon files. And they are: \n${babylonDicts.mkString("\n")}"
+    return babylonDicts.toList.sortBy(_.fileLocation)
   }
 
   def fixHeadwordsInFinalFile(file_pattern: String = ".*", baseDir: String = ".", headwordTransformer: (Array[String]) => Array[String]) = {
@@ -210,7 +212,7 @@ object babylonProcessor extends BatchProcessor{
   }
 
   def getWordToDictsMapFromPaths(basePaths: Seq[String], wordPattern: String = "(\\p{IsDevanagari})+"): mutable.HashMap[String, ListBuffer[BabylonDictionary]] = {
-    val babylonDicts = getRecursiveListOfBabylonDicts(basePaths = basePaths)
+    val babylonDicts = getRecursiveListOfFinalBabylonDicts(basePaths = basePaths)
     val wordToDicts = babylonTools.mapWordToDicts(dictList=babylonDicts, headword_pattern=wordPattern)
     log info s"Got ${wordToDicts.size} words"
     return wordToDicts
@@ -372,6 +374,14 @@ object tarProcessor extends BatchProcessor {
     //    makeTars("https://github.com/sanskrit-coders/stardict-telugu/raw/master/en-head/tars", dir)
     //    getStats
   }
+}
 
 
+object stardictProcessor extends BatchProcessor{
+  def main(args: Array[String]): Unit = {
+    val ifoFile = "/home/vvasuki/stardict-test/babylon-test/babylon-test.ifo"
+    val dict = Dictionary.fromIfo(ifoFile)
+    log info dict.getWords.toArray().mkString(",")
+    log info dict.getDefinitions("babytest_entry2_syn2").toArray().mkString(" ")
+  }
 }

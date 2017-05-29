@@ -15,15 +15,15 @@
     </description>
     <name>Indic Dictionary tools</name>
     <issueManagement>
-        <url>https://github.com/sanskrit-coders/stardict-sanskrit/issues</url>
+        <url>https://github.com/sanskrit-coders/dict-tools/issues</url>
         <system>GitHub Issues</system>
     </issueManagement>
-    <url>https://github.com/sanskrit-coders/stardict-sanskrit</url>
+    <url>https://github.com/sanskrit-coders/dict-tools</url>
 
     <licenses>
         <license>
             <name>Apache License 2.0</name>
-            <url>https://raw.githubusercontent.com/sanskrit-coders/stardict-sanskrit/master/LICENSE</url>
+            <url>https://raw.githubusercontent.com/sanskrit-coders/dict-tools/master/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -85,7 +85,12 @@
         <dependency>
             <groupId>com.github.sanskrit-coders</groupId>
             <artifactId>couchbase-lite-desktop</artifactId>
-            <version>1.1</version>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.sanskrit-coders</groupId>
+            <artifactId>StarDict</artifactId>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -155,7 +160,7 @@
             </plugin>
 
             <!-- For maven deployment.
-             To get Javadoc and Source jar files generated, you have to configure the javadoc and source Maven plugins.
+            getIndexFileEntry get Javadoc and Source jar files generated, you have to configure the javadoc and source Maven plugins.
              -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

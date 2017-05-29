@@ -6,7 +6,7 @@ import com.couchbase.lite.auth.BasicAuthenticator
 import dbSchema.common.ScriptRendering
 import dbSchema.dictionary.{DictEntry, DictLocation}
 import dbUtils.{collectionUtils, jsonHelper}
-import sanskrit_coders.db.couchbaseLite.couchbaseLiteUtils
+import sanskrit_coders.db.couchbaseLite.CouchbaseLiteDb
 import sanskritnlp.dictionary.BabylonDictionary
 import stardict_sanskrit.babylonProcessor
 
@@ -24,6 +24,7 @@ import scala.collection.JavaConverters._
 
 // This version of the database uses Java (rather than Android) API.
 class DictCouchbaseLiteDB() {
+  implicit def databaseToCouchbaseLiteDb(s: Database) = new CouchbaseLiteDb(s)
   val log = LoggerFactory.getLogger(getClass.getName)
   var dictEntriesDb: Database = null
   var dbManager: Manager = null
@@ -40,7 +41,7 @@ class DictCouchbaseLiteDB() {
   }
 
   def replicateAll() = {
-    couchbaseLiteUtils.replicate(dictEntriesDb)
+    dictEntriesDb)
   }
 
 
@@ -49,15 +50,16 @@ class DictCouchbaseLiteDB() {
   }
 
   def purgeAll = {
-    couchbaseLiteUtils.purgeDatabase(dictEntriesDb)
+    dictEntriesDb.purgeDatabase()
   }
 
   def updateDictEntry(dictEntry: DictEntry): Boolean = {
     val jsonMap = jsonHelper.getJsonMap(dictEntry)
-    log debug (jsonMap.toString())
+    if (dictEntry.location.entryNumber % 50 == 0) {
+      log debug (jsonMap.toString())
+    }
     //    sys.exit()
-    val document = dictEntriesDb.getDocument(dictEntry.getKey)
-    couchbaseLiteUtils.updateDocument(document, jsonMap)
+    dictEntriesDb.updateDocument(dictEntry.getKey, jsonMap)
     return true
   }
 
@@ -75,7 +77,7 @@ class DictCouchbaseLiteDB() {
 
   def listAllCaseClassObjects = {
     //    listCaseClassObjects(quoteDb.createAllDocumentsQuery)
-    couchbaseLiteUtils.listCaseClassObjects(dictEntriesDb.createAllDocumentsQuery)
+    dictEntriesDb.listCaseClassObjects(dictEntriesDb.createAllDocumentsQuery)
   }
 
 
@@ -101,28 +103,36 @@ object dbMakerStardictSanskrit {
   val log = LoggerFactory.getLogger(getClass.getName)
   val dictDb = new DictCouchbaseLiteDB()
 
-  def updateDb = {
+  def updateDb: Unit = {
     var workingDir = "/home/vvasuki/stardict-sanskrit/"
-    val dicts = babylonProcessor.getRecursiveListOfBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/"))
+    val dicts = (
+      babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/"))
+//      .dropWhile(x => x.fileLocation.replace("/home/vvasuki/", "").
+//        replaceAll("\\.babylon.+", "").replaceAll("/", "__") != "stardict-sanskrit__sa-head__en-entries__mw-sa__mw-sa")
+      ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/en-head/"))
+      ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/"))
+      )
     var exceptions = ListBuffer[String]()
     var failedDicts = ListBuffer[BabylonDictionary]()
+    log.info("Dicts are :\n" + dicts.mkString("\n"))
+    return
     dicts.map(x => {
       log info x.toString()
       try {
         dictDb.dumpDictionary(babylonDictionary = x)
       } catch {
-        case e => {
+        case e: Throwable => {
           exceptions.append(e.toString)
           failedDicts.append(x)
         }
       }
     })
-    exceptions zip failedDicts foreach( x => log error x.toString())
+    exceptions zip failedDicts foreach (x => log error x.toString())
   }
 
   def main(args: Array[String]): Unit = {
     dictDb.openDatabasesLaptop()
-        dictDb.replicateAll()
+    dictDb.replicateAll()
     // dictDb.checkConflicts
     updateDb
     //    dictDb.listAllCaseClassObjects

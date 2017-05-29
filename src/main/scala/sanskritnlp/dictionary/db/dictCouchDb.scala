@@ -42,7 +42,7 @@ object dictCouchDb {
 
   def main(args: Array[String]): Unit = {
     var workingDir = "/home/vvasuki/stardict-sanskrit/"
-    val dicts = babylonProcessor.getRecursiveListOfBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/sa-entries/"))
+    val dicts = babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/sa-entries/"))
     dicts.take(1).map(x => {
       log info x.toString()
       dumpDictionary(babylonDictionary = x)

@@ -109,6 +109,8 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
       })
     }
   }
+
+  override def toString(): String = s"$name_in : $fileLocation"
 }
 
 object babylonDictTest {
