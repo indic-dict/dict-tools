@@ -164,7 +164,7 @@ object babylonProcessor extends BatchProcessor{
   }
 
   def getRecursiveListOfFinalBabylonDicts(basePaths: Seq[String]): Seq[BabylonDictionary] = {
-    val babylonFiles = getRecursiveSetOfDictDirs(basePaths=basePaths).map(_.getFinalBabylonFile)
+    val babylonFiles = getRecursiveSetOfDictDirs(basePaths=basePaths).map(_.getFinalBabylonFile).filterNot(_ == null)
     val babylonDicts = babylonFiles.map(x => {
       val dict = new BabylonDictionary(name_in = x.getName, head_language = "")
       dict.fromFile(x.getCanonicalPath)

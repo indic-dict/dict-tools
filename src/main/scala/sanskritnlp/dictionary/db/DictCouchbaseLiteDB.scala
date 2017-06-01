@@ -41,7 +41,7 @@ class DictCouchbaseLiteDB() {
   }
 
   def replicateAll() = {
-    dictEntriesDb)
+    dictEntriesDb.replicate()
   }
 
 
@@ -106,16 +106,20 @@ object dbMakerStardictSanskrit {
   def updateDb: Unit = {
     var workingDir = "/home/vvasuki/stardict-sanskrit/"
     val dicts = (
-      babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/"))
+//      babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-head/"))
 //      .dropWhile(x => x.fileLocation.replace("/home/vvasuki/", "").
 //        replaceAll("\\.babylon.+", "").replaceAll("/", "__") != "stardict-sanskrit__sa-head__en-entries__mw-sa__mw-sa")
-      ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/en-head/"))
-      ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/"))
+//      ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/en-head/"))
+//      ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/"))
+      babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-sanskrit/sa-kAvya/"))
+        ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-tamil"))
+        ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-telugu"))
+        ++ babylonProcessor.getRecursiveListOfFinalBabylonDicts(basePaths = Seq("/home/vvasuki/stardict-kannada"))
       )
     var exceptions = ListBuffer[String]()
     var failedDicts = ListBuffer[BabylonDictionary]()
     log.info("Dicts are :\n" + dicts.mkString("\n"))
-    return
+//    return
     dicts.map(x => {
       log info x.toString()
       try {
