@@ -174,7 +174,7 @@ object babylonProcessor extends BatchProcessor{
     return babylonDicts.toList.sortBy(_.fileLocation)
   }
 
-  def fixHeadwordsInFinalFile(file_pattern: String = ".*", baseDir: String = ".", headwordTransformer: (Array[String]) => Array[String]) = {
+  def fixHeadwordsInFinalFile(file_pattern: String = ".*", baseDir: String = ".", headwordTransformer: (Array[String]) => Array[String], finalFileExtension: String = ".babylon_final") = {
     val files_to_ignore = Set("spokensanskrit.babylon")
     var dictionaries = getMatchingDictionaries(file_pattern, baseDir).filter(_.babylonFile.isDefined)
     log info (s"Got ${dictionaries.length} babylon files")
@@ -192,7 +192,7 @@ object babylonProcessor extends BatchProcessor{
         log info (f"skipping: $file")
       } else {
         log info (f"Fixing headwords in: $file")
-        sanskritnlp.dictionary.babylonTools.fixHeadwords(file, ".babylon_final", headwordTransformer)
+        sanskritnlp.dictionary.babylonTools.fixHeadwords(file, finalFileExtension, headwordTransformer)
       }
     })
     // sys.exit()
