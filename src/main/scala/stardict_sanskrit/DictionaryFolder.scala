@@ -297,7 +297,7 @@ object babylonProcessor extends BatchProcessor{
 }
 
 object tarProcessor extends BatchProcessor {
-  val filePatternToTar = ".*\\.ifo|.*\\.idx|.*\\.dz|.*\\.ifo|.*\\.syn|.*LICENSE\\.*"
+  val filePatternToTar = ".*\\.ifo|.*\\.idx|.*\\.dz|.*\\.ifo|.*\\.syn|.*LICENSE.*"
   def writeTarsList(tarDestination: String, urlBase: String) = {
     val outFileObj = new File(tarDestination + "/tars.MD")
     outFileObj.getParentFile.mkdirs
