@@ -8,7 +8,7 @@ scala -classpath "$PATH_TO_SANSKRITNLPJAVA/sanskritnlp-1.0-SNAPSHOT/WEB-INF/lib/
 
 import java.io._
 
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 import sanskritnlp.transliteration._
 import sanskritnlp.vyAkaraNa.devanAgarI
 
@@ -17,11 +17,10 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 /**
-  * Created by vvasuki on 2/20/16.
   */
 object babylonTools {
 
-  val log = LoggerFactory.getLogger("babylonTools")
+  val log: Logger = LoggerFactory.getLogger("babylonTools")
   def sutraNumbersToDevanagari(infileStr: String): Unit = {
     log info("Processing " + infileStr)
     val outfileStr = infileStr.replaceFirst(".babylon$", ".babylon_dev_sutra")
@@ -53,7 +52,7 @@ object babylonTools {
         wordToDicts += (word -> dictList)
       })
     })
-    return wordToDicts
+    wordToDicts
   }
 
 
@@ -73,21 +72,21 @@ object babylonTools {
         if(devanAgarI.isEncoding(x)) score += 1000
         if(kannaDa.isEncoding(x)) score += 70
         if(telugu.isEncoding(x)) score += 69
-        return score
+        score
       }
       if (getScore(a) == getScore(b)) {
-        return a < b
+        a < b
       } else {
-        return getScore(a) > getScore(b)
+        getScore(a) > getScore(b)
       }
     }
 
     def isHeadLine(x:String) = x.startsWith("#") || x.trim.isEmpty
     var src = Source.fromFile(infileStr, "utf8")
-    src.getLines.takeWhile(isHeadLine(_)).foreach(destination.println)
+    src.getLines.takeWhile(isHeadLine).foreach(destination.println)
 
     src = Source.fromFile(infileStr, "utf8")
-    src.getLines.dropWhile(isHeadLine(_)).zipWithIndex.foreach( t => {
+    src.getLines.dropWhile(isHeadLine).zipWithIndex.foreach( t => {
       val line = t._1
       val index = t._2
       try {
@@ -122,10 +121,10 @@ object babylonTools {
 
     def isHeadLine(x:String) = x.startsWith("#") || x.trim.isEmpty
     var src = Source.fromFile(infileStr, "utf8")
-    src.getLines.takeWhile(isHeadLine(_)).foreach(destination.println)
+    src.getLines.takeWhile(isHeadLine).foreach(destination.println)
 
     src = Source.fromFile(infileStr, "utf8")
-    src.getLines.dropWhile(isHeadLine(_)).zipWithIndex.foreach( t => {
+    src.getLines.dropWhile(isHeadLine).zipWithIndex.foreach( t => {
       val line = t._1
       val index = t._2
       try {
