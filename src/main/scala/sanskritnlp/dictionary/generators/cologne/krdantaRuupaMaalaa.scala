@@ -114,8 +114,41 @@ object krdantaRuupaMaalaa {
     destination.close()
   }
 
+  private def makeMetadataTsv() = {
+    val dictTsvPath = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA.tsv"
+    val dictTsvSource = Source.fromFile(name = dictTsvPath, enc = StandardCharsets.UTF_8.name())
+
+    val wordTsvPath = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA-meta.tsv"
+    val destination = new PrintWriter(new File(wordTsvPath))
+    destination.println(s"धातुः\tसङ्ख्या\tअर्थः\tगणादिः\tसेट्त्वम्\tसकर्मकता\tपदप्रकारः\tधातुसादृश्यम्\tक्त्वान्ताः\tतुम्\tशिष्टोक्तिः")
+    dictTsvSource.getLines.map(_.split("\t")).zipWithIndex.
+      foreach({
+        case (Array(key: String, content: String), index: Int) => {
+          log.debug(s"$key $index")
+          val dhaatuSankhyaa = "\\((.+?)\\)".r.findFirstMatchIn(content).map(_.subgroups.head).getOrElse("").trim
+          val dhaatuVivaranam = "\\{@(.+?)@\\}".r.findAllMatchIn(content).map(_.subgroups.head).mkString(" ").replaceAll("[”“‘’`]", "").trim
+          val gaNaadiVivaranam = "@\\} +\\((.+?)\\)".r.findFirstMatchIn(content).map(_.subgroups.head).getOrElse("").trim
+          val seTtvam =  if(gaNaadiVivaranam.contains("से")) "से" else "अनि"
+          val sakarmakataa = if (gaNaadiVivaranam.contains("सक")) "सक" else "अक"
+          val parasmaitvam = if (gaNaadiVivaranam.contains("उभ")) "उभ" else if (gaNaadiVivaranam.contains("पर")) "पर" else "आत्म"
+          val reminderContent = "^\\(.+?\\)\\s+\\{@.+@\\}\\s+\\(.+?\\)".r.replaceFirstIn(content, "").replaceAll("\\[\\[.+?\\]\\]|\\[.+?\\]", "").replaceAllLiterally("\\n", "").replaceAllLiterally("।)", ")").trim
+          val dhaatu_saadRshyam = "[^।]+व[त|द|ज]्[^।]+".r.findFirstIn(reminderContent).getOrElse("")
+          var tvaantas = "([^;,\\- ]+त्वा|[^;,\\- ]+ट्वा)[;,\\- ]".r.findAllMatchIn(reminderContent).map(_.subgroups.head).toList.distinct
+          if (key != "पठ") {
+            tvaantas = tvaantas.filterNot(List("पठित्वा", "चोक्त्वा").contains)
+          }
+          val tvaantaStr = tvaantas.mkString(", ")
+          val tumunantas = "([^;,\\- ]+तुम्)[;,\\- ]".r.findAllMatchIn(reminderContent).map(_.subgroups.head).toList.distinct.mkString(", ")
+
+          destination.println(s"$key\t$dhaatuSankhyaa\t$dhaatuVivaranam\t$gaNaadiVivaranam\t$seTtvam\t$sakarmakataa\t$parasmaitvam\t$dhaatu_saadRshyam\t$tvaantaStr\t$tumunantas\t$reminderContent")
+        }
+      })
+    destination.close()
+  }
+
   def main(args: Array[String]): Unit = {
 //    makeBabylon()
-    makeWordTsv()
+    // makeWordTsv()
+    makeMetadataTsv()
   }
 }
