@@ -6,14 +6,13 @@ import java.nio.charset.StandardCharsets
 import org.slf4j.{Logger, LoggerFactory}
 import sanskritnlp.transliteration.harvardKyoto
 
-import scala.collection.immutable.ListSet
 import scala.collection.mutable
 import scala.io.Source
 
 object krdantaRuupaMaalaa {
-  val log: Logger = LoggerFactory.getLogger(getClass.getName)
+  private val log: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  def toDevanaagarii = {
+  private def writeDevanaagariiTsv(): Unit = {
     val infileStr = "/home/vvasuki/stardict-sanskrit/sa-head/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA.tsv"
     val outfileStr = "/home/vvasuki/stardict-sanskrit/sa-head/kRdanta-rUpa-mAlA/kRdanta-rUpa-mAlA-test.tsv"
     val src = Source.fromFile(infileStr, "utf8")
@@ -32,7 +31,7 @@ object krdantaRuupaMaalaa {
     println("")
   }
 
-  def extractFootnotes(content: String, tagPrefix: String): (String, List[(String, String)]) = {
+  private def extractFootnotes(content: String, tagPrefix: String): (String, List[(String, String)]) = {
     val footnotePattern = "\\[\\[?[^\\]]*\\]\\]?|\\([^\\)]+\\)".r
     var contentWithFootnoteMarkers = content
     var footnotesMap = mutable.ListMap[String, String]()
@@ -51,7 +50,7 @@ object krdantaRuupaMaalaa {
     (contentWithFootnoteMarkers, footnotesMap.toList)
   }
 
-  def getWordList(line: String): Seq[String] = {
+  private def getWordList(line: String): Seq[String] = {
     val cleanedLine = line.replaceAll(" *(\\{.+?\\}|\\([^\\)]+?\\)|‘.+?’|इति.+?।|१|२|३|४|५|६|७|८|९|०) *", "")
       .replaceAll(" +", " ")
       .replaceAll("-+", "-")
@@ -59,7 +58,7 @@ object krdantaRuupaMaalaa {
     cleanedLine.split("[ ;,]").map(_.trim).filterNot(_.isEmpty)
   }
 
-  def makeBabylon(): Unit = {
+  private def makeBabylon(): Unit = {
     val babylonHtmlPreamble =
       """
         |#stripmethod=keep
@@ -68,20 +67,19 @@ object krdantaRuupaMaalaa {
         |#
         |
       """.stripMargin
-    val baseTsvStr = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA.tsv"
-    val babylonFile = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/kRdanta-rUpa-mAlA.babylon"
-    val baseTsvSource = Source.fromFile(name = baseTsvStr, enc = StandardCharsets.UTF_8.name())
+    val dictTsvPath = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA.tsv"
+    val dictTsvSource = Source.fromFile(name = dictTsvPath, enc = StandardCharsets.UTF_8.name())
 
+    val babylonFile = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/kRdanta-rUpa-mAlA.babylon"
     val destination = new PrintWriter(new File(babylonFile))
     destination.println(babylonHtmlPreamble)
-    baseTsvSource.getLines.map(_.split("\t")).zipWithIndex.
+    dictTsvSource.getLines.map(_.split("\t")).zipWithIndex.
       map({case (Array(key: String, content: String), index: Int) =>
       var (contentWithFootnoteMarkers, footnotesMap) = extractFootnotes(content, f"krm_$index%04d")
 
-
       // We don't directly split below to accommodate the [^०-९] condition.
       val finalContentItems = contentWithFootnoteMarkers.replace("\\n\\n", "").replaceAll("([^०-९]। |;)", "$1<BR><BR>").split("<BR><BR>").filterNot(_.isEmpty)
-      val headwords = Seq(key) ++ finalContentItems.filter(_.endsWith(";")).map(getWordList).flatten.toSeq
+      val headwords = Seq(key) ++ finalContentItems.filter(_.endsWith(";")).flatMap(getWordList).toSeq
       val finalContentItemsHtml =  finalContentItems.map(x => s"""<li>$x</li>""")
       val footnoteItems = footnotesMap.sortBy(_._1).map({ case (fullFootnoteId: String, content: String) => //noinspection RedundantBlock
       {
@@ -97,7 +95,27 @@ object krdantaRuupaMaalaa {
     destination.close()
   }
 
+  private def makeWordTsv(): Unit = {
+    val dictTsvPath = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA.tsv"
+    val dictTsvSource = Source.fromFile(name = dictTsvPath, enc = StandardCharsets.UTF_8.name())
+
+    val wordTsvPath = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA-words.tsv"
+    val destination = new PrintWriter(new File(wordTsvPath))
+    dictTsvSource.getLines.map(_.split("\t")).zipWithIndex.
+      map({
+        case (Array(key: String, content: String), index: Int) =>
+          var (contentWithFootnoteMarkers, footnotesMap) = extractFootnotes(content, f"krm_$index%04d")
+          // We don't directly split below to accommodate the [^०-९] condition.
+          val finalContentItems = contentWithFootnoteMarkers.replace("\\n\\n", "").replaceAll("([^०-९]। |;)", "$1<BR><BR>").split("<BR><BR>").filterNot(_.isEmpty)
+          Seq(key) ++ finalContentItems.filter(_.endsWith(";")).flatMap(getWordList).toSeq
+      }).foreach(headwords => {
+      destination.println(headwords.mkString("\t"))
+    })
+    destination.close()
+  }
+
   def main(args: Array[String]): Unit = {
-    makeBabylon()
+//    makeBabylon()
+    makeWordTsv()
   }
 }
