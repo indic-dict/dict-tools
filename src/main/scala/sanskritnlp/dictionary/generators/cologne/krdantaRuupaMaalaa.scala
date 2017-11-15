@@ -132,7 +132,8 @@ object krdantaRuupaMaalaa {
           val sakarmakataa = if (gaNaadiVivaranam.contains("सक")) "सक" else "अक"
           val parasmaitvam = if (gaNaadiVivaranam.contains("उभ")) "उभ" else if (gaNaadiVivaranam.contains("पर")) "पर" else "आत्म"
           val reminderContent = "^\\(.+?\\)\\s+\\{@.+@\\}\\s+\\(.+?\\)".r.replaceFirstIn(content, "").replaceAll("\\[\\[.+?\\]\\]|\\[.+?\\]", "").replaceAllLiterally("\\n", "").replaceAllLiterally("।)", ")").trim
-          val dhaatu_saadRshyam = "[^।]+व[त|द|ज]्[^।]+".r.findFirstIn(reminderContent).getOrElse("")
+          val dhaatu_saadRshya_vaakyam = "[^।]+व[त|द|ज]्[^।]+".r.findFirstIn(reminderContent).getOrElse("")
+          val dhaatu_saadRshyam = "\\((.+?)\\)".r.findAllMatchIn(dhaatu_saadRshya_vaakyam).map(_.subgroups.head).mkString(",")
           var tvaantas = "([^;,\\- ]+त्वा|[^;,\\- ]+ट्वा)[;,\\- ]".r.findAllMatchIn(reminderContent).map(_.subgroups.head).toList.distinct
           if (key != "पठ") {
             tvaantas = tvaantas.filterNot(List("पठित्वा", "चोक्त्वा").contains)
