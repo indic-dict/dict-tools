@@ -13,15 +13,15 @@ object krdantaRuupaMaalaa {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
 
   private def writeDevanaagariiTsv(): Unit = {
-    val infileStr = "/home/vvasuki/stardict-sanskrit/sa-head/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA.tsv"
-    val outfileStr = "/home/vvasuki/stardict-sanskrit/sa-head/kRdanta-rUpa-mAlA/kRdanta-rUpa-mAlA-test.tsv"
+    val infileStr = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA.tsv"
+    val outfileStr = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/kRdanta-rUpa-mAlA-test.tsv"
     val src = Source.fromFile(infileStr, "utf8")
     val outFileObj = new File(outfileStr)
     new File(outFileObj.getParent).mkdirs
     val destination = new PrintWriter(outFileObj)
 
     src.getLines.foreach(line => {
-      var newLine = harvardKyoto.toDevanagari(line).get
+      var newLine = harvardKyoto.toDevanagari(line)
       newLine = harvardKyoto.restoreEscapeSequences(newLine)
       destination.println(newLine)
       // println(line)

@@ -21,6 +21,7 @@ import scala.io.Source
 object babylonTools {
 
   val log: Logger = LoggerFactory.getLogger("babylonTools")
+
   def sutraNumbersToDevanagari(infileStr: String): Unit = {
     log info("Processing " + infileStr)
     val outfileStr = infileStr.replaceFirst(".babylon$", ".babylon_dev_sutra")
@@ -32,7 +33,7 @@ object babylonTools {
     val suutraPattern = """(\d+\.\d+\.\d+)""".r
     src.getLines.foreach(line => {
       var newLine = suutraPattern.replaceAllIn(line, _ match {
-        case suutraPattern(latin_str) => optitrans.toDevanagari(latin_str).get.replaceAll("।", ".")})
+        case suutraPattern(latin_str) => optitrans.toDevanagari(latin_str).replaceAll("।", ".")})
       destination.println(newLine)
       // println(line)
       // println(newLine)
@@ -158,12 +159,12 @@ object babylonTools {
     val asPatternUnmarked = """(\W)(\w+?\d\w*?)(\W)""".r
     src.getLines.foreach(line => {
       var newLine = asPattern.replaceAllIn(line, _ match {
-        case asPattern(as_str) => as.toDevanagari(as_str).get})
+        case asPattern(as_str) => as.toDevanagari(as_str)})
       newLine = asPatternUnmarked.replaceAllIn(newLine, _ match {
         case asPatternUnmarked(fore, as_str, aft) => fore + as.toDevanagari(as_str) + aft })
       destination.println(newLine)
       // log info(line)
-      log info(newLine)
+      log info newLine
     })
     destination.close()
     log info("Produced " + outfileStr)

@@ -3,7 +3,6 @@ package sanskritnlp.dictionary.generators
 import java.io.{File, PrintWriter}
 
 import com.davidthomasbernal.stardict.Dictionary
-import org.jsoup.Jsoup
 import stardict_sanskrit.stardictProcessor.log
 
 object huetJson {
