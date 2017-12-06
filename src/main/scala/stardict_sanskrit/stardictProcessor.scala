@@ -3,8 +3,10 @@ package stardict_sanskrit
 import java.io.{File, PrintWriter}
 
 import com.davidthomasbernal.stardict.Dictionary
+import org.slf4j.{Logger, LoggerFactory}
 
 object stardictProcessor extends BatchProcessor{
+  private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   override def getMatchingDictionaries(file_pattern: String, baseDir: String = "."): List[DictionaryFolder] = {
     val dictionaries = super.getMatchingDictionaries(file_pattern, baseDir).filter(_.ifoFile.nonEmpty)
     log info (s"Got ${dictionaries.length} stardict ifo files")

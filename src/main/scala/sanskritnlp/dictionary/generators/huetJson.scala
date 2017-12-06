@@ -3,9 +3,11 @@ package sanskritnlp.dictionary.generators
 import java.io.{File, PrintWriter}
 
 import com.davidthomasbernal.stardict.Dictionary
+import org.slf4j.{Logger, LoggerFactory}
 import stardict_sanskrit.stardictProcessor.log
 
 object huetJson {
+  private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   def makeKrdantaDict(): Unit = {
     val ifoFile = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/grammar-heritage_du_sanskrit_san-san/grammar-heritage_du_sanskrit_san-san.ifo"
     val babylonFile = new File("/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/huetKrdanta/huetKrdantaRoots.txt")

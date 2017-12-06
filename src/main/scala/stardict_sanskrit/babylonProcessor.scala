@@ -2,6 +2,7 @@ package stardict_sanskrit
 
 import java.io.{File, PrintWriter, StringWriter}
 
+import org.slf4j.{Logger, LoggerFactory}
 import sanskritnlp.dictionary.babylonTools.log
 import sanskritnlp.dictionary.{BabylonDictionary, babylonTools}
 import sanskritnlp.transliteration.{iast, transliterator}
@@ -12,6 +13,7 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 object babylonProcessor extends BatchProcessor{
+  private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   override def getMatchingDictionaries(file_pattern: String, baseDir: String = "."): List[DictionaryFolder] = {
     val dictionaries = super.getMatchingDictionaries(file_pattern, baseDir).filter(_.getFinalBabylonFile != null)
     log info (s"Got ${dictionaries.count(_.babylonFinalFile.isDefined)} babylon_final files")

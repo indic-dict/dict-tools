@@ -2,10 +2,13 @@ package stardict_sanskrit
 
 import java.io.{File, PrintWriter}
 
+import org.slf4j.{Logger, LoggerFactory}
+
 import scala.io.Source
 import scala.sys.process._
 
 object tarProcessor extends BatchProcessor {
+  private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   val filePatternToTar = ".*\\.ifo|.*\\.idx|.*\\.dz|.*\\.ifo|.*\\.syn|.*LICENSE.*"
   def writeTarsList(tarDestination: String, urlBase: String) = {
     val outFileObj = new File(tarDestination + "/tars.MD")
