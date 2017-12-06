@@ -87,24 +87,25 @@ object babylonTools {
     src.getLines.takeWhile(isHeadLine).foreach(destination.println)
 
     src = Source.fromFile(infileStr, "utf8")
-    src.getLines.dropWhile(isHeadLine).zipWithIndex.foreach( t => {
-      val line = t._1
-      val index = t._2
+    src.getLines.dropWhile(isHeadLine).sliding(3,3).foreach( t => {
+      val headwordsLine = t(0)
+      val definitionLine = t(1)
       try {
-        if(index % 3 == 0) {
-          val headwordsOriginal = line.split('|')
-          var headwordsFixed = headwordTransformer(headwordsOriginal).toList.distinct
-          if(sort) {
-            headwordsFixed = headwordsFixed.sortWith(headwordSorter)
-          }
-          // Sorting with sortwith is risky - can fail and produce no output line. Skipping that.
-          destination.println(headwordsFixed.mkString("|"))
-        } else {
-          destination.println(line)
+        val headwordsOriginal = headwordsLine.split('|')
+        var headwordsFixed = headwordTransformer(headwordsOriginal).toList.distinct
+        if(sort) {
+          headwordsFixed = headwordsFixed.sortWith(headwordSorter)
         }
+        // Sorting with sortwith is risky - can fail and produce no output line. Skipping that.
+        destination.println(headwordsFixed.mkString("|"))
+        destination.println(definitionLine)
+        destination.println()
       } catch {
         case ex: Exception => {
           log error ex.toString
+          val sw = new StringWriter
+          ex.printStackTrace(new PrintWriter(sw))
+          log.error(sw.toString)
           log error "line: " + t.toString()
         }
       }
