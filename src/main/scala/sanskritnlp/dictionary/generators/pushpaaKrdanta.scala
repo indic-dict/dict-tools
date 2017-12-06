@@ -23,11 +23,18 @@ object pushpaaKrdanta {
     new File(outFileObj.getParent).mkdirs
     val destination = new PrintWriter(outFileObj)
 
-    src.take(10).foreach(valueMap => {
-      val newLine =  Serialization.writePretty(valueMap)
-      destination.println(newLine)
+    src.map(valueMap=> valueMap.filter(tuple2 => (tuple2._2.trim != "" && tuple2._1 != "क्रमाङ्कः"))
+      .mapValues(_.split("/").map(_.trim)))
+      .foreach(valueMap => {
+      val headers = valueMap.values.flatten.toList.distinct
+      val headersLine = headers.mkString("|")
+      val meaningLine =  Serialization.writePretty(valueMap).replace("\n", "<BR>")
+      destination.println(headersLine)
+      destination.println(meaningLine)
+      destination.println("")
       // println(line)
-       println(newLine)
+      println(headersLine)
+      println(meaningLine)
     })
     destination.close()
     println("")

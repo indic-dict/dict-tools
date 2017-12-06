@@ -10,7 +10,6 @@ libraryDependencies ++= Seq(
   ,"ch.qos.logback" % "logback-core" % "0.9.29"
   ,"org.json4s" % "json4s-ast_2.12" % "3.5.2"
   ,"org.json4s" % "json4s-native_2.12" % "3.5.2"
-  ,"com.couchbase.lite" % "couchbase-lite-java" % "1.4.0"
   ,"org.apache.commons" % "commons-csv" % "1.4"
   ,"com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.8"
   ,"com.github.sanskrit-coders" % "StarDict" % "1.1"
@@ -29,6 +28,8 @@ scmInfo := Some(
     "scm:git@github.com:sanskrit-coders/dict-tools.git"
   )
 )
+
+assemblyOutputPath in assembly := file("bin/artifacts/dict-tools.jar")
 
 useGpg := true
 publishMavenStyle := true

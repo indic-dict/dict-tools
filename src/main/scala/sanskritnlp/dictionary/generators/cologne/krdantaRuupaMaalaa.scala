@@ -114,7 +114,7 @@ object krdantaRuupaMaalaa {
     destination.close()
   }
 
-  private def makeMetadataTsv() = {
+  private def makeMetadataTsv(): Unit = {
     val dictTsvPath = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa/kRdanta-rUpa-mAlA/mUlam/kRdanta-rUpa-mAlA.tsv"
     val dictTsvSource = Source.fromFile(name = dictTsvPath, enc = StandardCharsets.UTF_8.name())
 

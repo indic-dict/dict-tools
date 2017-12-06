@@ -9,7 +9,10 @@ Tools to process (mainly Indic) dictionaries.
 
 # Dictionary and packaging software developer instructions
 ## Update /bin used by dictionary users
-Use intellij to generate the bin/artifacts/stardict-sanskrit.jar artifact, which is used by dictionary developers during packaging. 
+To generate the bin/artifacts/dict-tools.jar artifact, which is used by dictionary developers during packaging:
+
+- Use intellij?
+- sbt assembly  
 
 ## Links to general comments
 See [indic-transliteration/README](https://github.com/sanskrit-coders/indic-transliteration/blob/master/README.md) for the following info:

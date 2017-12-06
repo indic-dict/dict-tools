@@ -57,7 +57,7 @@ object babylonTools {
   }
 
 
-  def fixHeadwords(infileStr: String, outputExt: String, headwordTransformer: (Array[String]) => Array[String]): Unit = {
+  def fixHeadwords(infileStr: String, outputExt: String, headwordTransformer: (Array[String]) => Array[String], sort: Boolean = true): Unit = {
     log info("Processing " + infileStr)
     val outfileStr = infileStr.replaceFirst("\\.[^.]+$", outputExt)
     log info("Will produce " + outfileStr)
@@ -93,10 +93,12 @@ object babylonTools {
       try {
         if(index % 3 == 0) {
           val headwordsOriginal = line.split('|')
-          val headwordsFixed = headwordTransformer(headwordsOriginal)
+          var headwordsFixed = headwordTransformer(headwordsOriginal).toList.distinct
+          if(sort) {
+            headwordsFixed = headwordsFixed.sortWith(headwordSorter)
+          }
           // Sorting with sortwith is risky - can fail and produce no output line. Skipping that.
-          destination.println(headwordsFixed.toSet.toList.sortWith(headwordSorter
-          ).mkString("|"))
+          destination.println(headwordsFixed.mkString("|"))
         } else {
           destination.println(line)
         }
