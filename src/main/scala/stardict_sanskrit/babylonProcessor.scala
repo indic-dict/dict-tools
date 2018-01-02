@@ -3,17 +3,47 @@ package stardict_sanskrit
 import java.io.{File, PrintWriter, StringWriter}
 
 import org.slf4j.{Logger, LoggerFactory}
-import sanskritnlp.dictionary.babylonTools.log
 import sanskritnlp.dictionary.{BabylonDictionary, babylonTools}
 import sanskritnlp.transliteration.{iast, transliterator}
 import sanskritnlp.vyAkaraNa.devanAgarI
+import stardict_sanskrit.babylonProcessor.{getClass, log}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
+object headwordTransformers{
+  private val log: Logger = LoggerFactory.getLogger(getClass.getName)
+  def addOptitransFromDevanaagarii(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
+    x => try {
+      transliterator.transliterate(x, "dev", "optitrans")
+    } catch {
+      case ex: Exception => {
+        val sw = new StringWriter
+        ex.printStackTrace(new PrintWriter(sw))
+        log.error(sw.toString)
+        log.error(x)
+        ""
+      }
+    }))
+
+  def addNonAnsusvaaraVariantsFromDevanaagarii(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
+    x => try {
+      transliterator.getNonAnusvaaraVariant(x)
+    } catch {
+      case ex: Exception => {
+        val sw = new StringWriter
+        ex.printStackTrace(new PrintWriter(sw))
+        log.error(sw.toString)
+        log.error(x)
+        ""
+      }
+    }))
+}
+
 object babylonProcessor extends BatchProcessor{
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
+
   override def getMatchingDictionaries(file_pattern: String, baseDir: String = "."): List[DictionaryFolder] = {
     val dictionaries = super.getMatchingDictionaries(file_pattern, baseDir).filter(_.getFinalBabylonFile != null)
     log info (s"Got ${dictionaries.count(_.babylonFinalFile.isDefined)} babylon_final files")
@@ -59,18 +89,10 @@ object babylonProcessor extends BatchProcessor{
 
   def addOptitrans(file_pattern: String = ".*", baseDir: String = ".") = {
     log info "=======================Adding optitrans headwords, making final babylon file."
-    val headwordTransformer = (headwords_original:Array[String]) => (headwords_original ++ headwords_original.map(
-      x => try {
-        transliterator.transliterate(x, "dev", "optitrans")
-      } catch {
-        case ex: Exception => {
-          val sw = new StringWriter
-          ex.printStackTrace(new PrintWriter(sw))
-          log.error(sw.toString)
-          log.error(x)
-          ""
-        }
-      })).filterNot(_.isEmpty).distinct
+    val headwordTransformer = (headwords_original:Array[String]) => (
+      headwordTransformers.addOptitransFromDevanaagarii(
+        headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwords_original))
+      ).filterNot(_.isEmpty).distinct
     fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=headwordTransformer, sort=false)
   }
 

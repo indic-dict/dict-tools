@@ -27,15 +27,19 @@ object tarProcessor extends BatchProcessor {
     var dictionaries = getMatchingDictionaries(file_pattern).filter(_.ifoFile.isDefined)
     log info (s"Got ${dictionaries.filter(_.tarFile.isDefined).length} tar files")
     log info (s"Got ${dictionaries.filter(x => x.ifoFile.isDefined && !x.tarFile.isDefined).length}  dicts without tarFile files but with ifo file.")
+
+    // Remove excess and outdated tar files.
     if (file_pattern == ".*" && dictionaries.nonEmpty) {
       val tarDirFile = dictionaries.head.getTarDirFile
-      val excessTarFiles = tarDirFile.listFiles.filterNot(x => {
-        val name = x.getName
-        name != "tars.MD" && dictionaries.filter(_.tarFile.isDefined).map(_.tarFile.get.getCanonicalPath).contains(x.getCanonicalPath)
-      })
-      log warn s"Removing ${excessTarFiles.length} excessTarFiles"
-      excessTarFiles.foreach(_.delete())
-      writeTarsList(dictionaries.head.getTarDirFile.getCanonicalPath, urlBase)
+      if (tarDirFile.exists()) {
+        val excessTarFiles = tarDirFile.listFiles.filterNot(x => {
+          val name = x.getName
+          name != "tars.MD" && dictionaries.filter(_.tarFile.isDefined).map(_.tarFile.get.getCanonicalPath).contains(x.getCanonicalPath)
+        })
+        log warn s"Removing ${excessTarFiles.length} excessTarFiles"
+        excessTarFiles.foreach(_.delete())
+        writeTarsList(dictionaries.head.getTarDirFile.getCanonicalPath, urlBase)
+      }
     }
     var dictsToIgnore = dictionaries.filter(_.tarFileNewerThanIfo())
     if (dictsToIgnore.nonEmpty) {

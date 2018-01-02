@@ -8,6 +8,7 @@ object commandInterface {
   def main(args: Array[String]): Unit = {
     assert(args.length > 0)
     val command = args(0)
+    log.info(args.mkString(" "))
     command match {
       case "addOptitrans" => babylonProcessor.addOptitrans(file_pattern = args(1).replace("DICTS=", ""))
       case "makeTars" => tarProcessor.makeTars(urlBase = args(1), file_pattern = args(2).replace("DICTS=", ""))
