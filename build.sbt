@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   ,"org.json4s" % "json4s-ast_2.12" % "3.5.2"
   ,"org.json4s" % "json4s-native_2.12" % "3.5.2"
   ,"org.apache.commons" % "commons-csv" % "1.4"
-  ,"com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.10"
+  ,"com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.13"
   ,"com.github.sanskrit-coders" % "StarDict" % "1.1"
   //    ,"com.github.sanskrit-coders" % "sanskrit-lttoolbox" % "0.1"
   //  ,"com.github.sanskrit-coders" % "db-interface" % "1.8"

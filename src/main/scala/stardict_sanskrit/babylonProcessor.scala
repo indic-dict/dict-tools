@@ -14,6 +14,19 @@ import scala.io.Source
 
 object headwordTransformers{
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
+  def addDevanaagariiFromOtherIndic(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
+    x => try {
+      transliterator.getDevanagariiFromOtherIndicString(x).getOrElse("")
+    } catch {
+      case ex: Exception => {
+        val sw = new StringWriter
+        ex.printStackTrace(new PrintWriter(sw))
+        log.error(sw.toString)
+        log.error(x)
+        ""
+      }
+    }))
+
   def addOptitransFromDevanaagarii(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
     x => try {
       transliterator.transliterate(x, "dev", "optitrans")
@@ -91,7 +104,7 @@ object babylonProcessor extends BatchProcessor{
     log info "=======================Adding optitrans headwords, making final babylon file."
     val headwordTransformer = (headwords_original:Array[String]) => (
       headwordTransformers.addOptitransFromDevanaagarii(
-        headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwords_original))
+        headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwordTransformers.addDevanaagariiFromOtherIndic(headwords_original)))
       ).filterNot(_.isEmpty).distinct
     fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=headwordTransformer, sort=false)
   }
