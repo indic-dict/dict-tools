@@ -9,8 +9,9 @@ scala -classpath "$PATH_TO_SANSKRITNLPJAVA/sanskritnlp-1.0-SNAPSHOT/WEB-INF/lib/
 import java.io._
 
 import org.slf4j.{Logger, LoggerFactory}
-import sanskritnlp.transliteration._
-import sanskritnlp.vyAkaraNa.devanAgarI
+import sanskritnlp.transliteration.indic._
+import sanskritnlp.transliteration.roman.{as, optitrans}
+import sanskritnlp.transliteration.transliterator
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -70,9 +71,9 @@ object babylonTools {
       def getScore(x: String): Float = {
         var score = x.length
         if(x.contains("_")) score += -1000
-        if(devanAgarI.isEncoding(x)) score += 1000
-        if(kannaDa.isEncoding(x)) score += 70
-        if(telugu.isEncoding(x)) score += 69
+        if(transliterator.getScriptHandler(x) == Some(devanaagarii)) score += 1000
+        if(transliterator.getScriptHandler(x) == Some(kannada)) score += 70
+        if(transliterator.getScriptHandler(x) == Some(telugu)) score += 69
         score
       }
       if (getScore(a) == getScore(b)) {

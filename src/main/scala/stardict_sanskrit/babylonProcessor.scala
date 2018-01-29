@@ -4,9 +4,9 @@ import java.io.{File, PrintWriter, StringWriter}
 
 import org.slf4j.{Logger, LoggerFactory}
 import sanskritnlp.dictionary.{BabylonDictionary, babylonTools}
-import sanskritnlp.transliteration.{iast, transliterator}
+import sanskritnlp.transliteration.roman.iast
+import sanskritnlp.transliteration.transliterator
 import sanskritnlp.vyAkaraNa.devanAgarI
-import stardict_sanskrit.babylonProcessor.{getClass, log}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -20,7 +20,7 @@ object headwordTransformers{
     } catch {
       case ex: Exception => {
         val sw = new StringWriter
-        ex.printStackTrace(new PrintWriter(sw))
+        log.error(headwords_original.toString)
         log.error(sw.toString)
         log.error(x)
         ""

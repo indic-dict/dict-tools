@@ -4,7 +4,7 @@ import java.io.{File, PrintWriter}
 import java.nio.charset.StandardCharsets
 
 import org.slf4j.{Logger, LoggerFactory}
-import sanskritnlp.transliteration.harvardKyoto
+import sanskritnlp.transliteration.roman.harvardKyoto
 
 import scala.collection.mutable
 import scala.io.Source
