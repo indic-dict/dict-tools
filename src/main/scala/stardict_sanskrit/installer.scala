@@ -7,7 +7,7 @@ import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import org.slf4j.{Logger, LoggerFactory}
-import sanskrit_coders.RichHttpClient
+import sanskrit_coders.{RichHttpClient, Utils}
 import akka.http.scaladsl.model._
 import akka.stream.scaladsl.FileIO
 import akka.util.Timeout
@@ -16,9 +16,15 @@ import scala.concurrent.Future
 import scala.io.Source
 import scala.util.{Failure, Success}
 
+
+case class Dictionary(dictTarUrl: String, destinationFolder: String)
+
+
 case class DictIndex(indexUrl: String, var downloadPath: String = "", var dictTarUrls: List[String] = List()) {
   downloadPath = indexUrl.replaceAllLiterally("https://raw.githubusercontent.com/", "").replaceAllLiterally("master/", "").replaceAllLiterally("tars/tars.MD", "")
   dictTarUrls = DictIndex.getUrlsFromIndexMd(url=indexUrl).toList
+
+  val dictionaries  = dictTarUrls.map(dictTarUrl => Dictionary(dictTarUrl=dictTarUrl, destinationFolder = downloadPath))
 //
 //  override def toString: String = s"indexUrl: ${indexUrl}\ndownloadPath: ${downloadPath}\ndictTarUrls: ${dictTarUrls.mkString("\n")}"
 }
@@ -28,6 +34,7 @@ object DictIndex {
     Source.fromURL(url).mkString.split("\n").map(_.replaceAll("[<>]", ""))
   }
 }
+
 
 class InstallerActor extends Actor with ActorLogging {
   import context.dispatcher // Provides ExecutionContext - required below.
@@ -39,11 +46,10 @@ class InstallerActor extends Actor with ActorLogging {
   private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpClient.httpClientWithRedirect(simpleClient)
 
   def receive: PartialFunction[Any, Unit] = {
-    case Tuple2(dictTarUrl: String, destinationPath: String) => {
-      log.debug(dictTarUrl)
-      log.debug(destinationPath)
-      val fileSink = FileIO.toPath(Paths.get(destinationPath))
-      redirectingClient(HttpRequest(uri = dictTarUrl)).map(_.entity.dataBytes.to(fileSink).run()).pipeTo(sender())
+    case dict: Dictionary => {
+      log.debug(dict.toString)
+      val fileSink = FileIO.toPath(Paths.get(dict.destinationFolder + "/" +  dict.dictTarUrl.split("/").last))
+      redirectingClient(HttpRequest(uri = dict.dictTarUrl)).map(_.entity.dataBytes.to(fileSink).run()).pipeTo(sender())
       // TODO: To be continued.
     }
   }
@@ -62,15 +68,15 @@ object installer {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     //    log.debug(indices.mkString(","))
-    indices.map(new DictIndex(_)).take(1).foreach(index => {
-      log.debug(index.toString)
-      index.dictTarUrls.foreach(dictUrl => {
-        ask(installerActorRef, Tuple2(dictUrl, index.downloadPath)).onComplete{
-          case Success(value) => log.info("All done!")
-          case Failure(exception) => log.error(s"An error occurred: ${exception.getMessage}, with stacktrace:\n${exception.getStackTrace.mkString("\n")}")
-        }
-      })
-    })
+    val resultFutures = indices.map(new DictIndex(_)).map(index => index.dictionaries).flatten.map( dictionary =>  ask(installerActorRef, dictionary) ).take(1)
+    val futureOfResults = Utils.getFutureOfTrys(resultFutures)
+/*
+.foreach (someTry => someTry match {
+        case Success(value) => log.info("All done!")
+        case Failure(exception) => log.error(s"An error occurred: ${exception.getMessage}, with stacktrace:\n${exception.getStackTrace.mkString("\n")}")
+      }
+ */
+
   }
 
   def main(args: Array[String]): Unit = {
