@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization
 import org.slf4j.{Logger, LoggerFactory}
-import sanskritnlp.transliteration.harvardKyoto
+import sanskritnlp.transliteration.roman.harvardKyoto
 
 import scala.collection.mutable
 import scala.io.Source
@@ -23,7 +23,7 @@ object pushpaaKrdanta {
     new File(outFileObj.getParent).mkdirs
     val destination = new PrintWriter(outFileObj)
 
-    src.map(valueMap=> valueMap.filter(tuple2 => (tuple2._2.trim != "" && tuple2._1 != "क्रमाङ्कः"))
+    src.map(valueMap=> valueMap.filter(tuple2 => tuple2._2.trim != "" && tuple2._1 != "क्रमाङ्कः")
       .mapValues(_.split("/").map(_.trim)))
       .foreach(valueMap => {
       val headers = valueMap.values.flatten.toList.distinct.filterNot(_.isEmpty)

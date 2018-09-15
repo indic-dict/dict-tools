@@ -10,6 +10,7 @@ object commandInterface {
     val command = args(0)
     log.info(args.mkString(" "))
     command match {
+      case "install" => installer.install(destination = args(1), indexOfIndicesUrl = args(2))
       case "addOptitrans" => babylonProcessor.addOptitrans(file_pattern = args(1).replace("DICTS=", ""))
       case "makeTars" => tarProcessor.makeTars(urlBase = args(1), file_pattern = args(2).replace("DICTS=", ""))
       case "compressAllDicts" => tarProcessor.compressAllDicts(basePaths = Seq(args(1)), tarFilePath = args(2))

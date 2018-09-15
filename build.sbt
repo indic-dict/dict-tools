@@ -1,6 +1,12 @@
 name := "dict-tools"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.6"
+
+// The library versions should be as mutually compatible as possible - else there will be weird runtime errors.
+// We just use whatever we found compatible with akka-http-core in scala-utils_2.12
+val akkaVersion = "2.4.20"
+val akkaHttpVersion = "10.0.11"
+
 
 resolvers += Resolver.sonatypeRepo("releases")
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -10,11 +16,11 @@ libraryDependencies ++= Seq(
   ,"ch.qos.logback" % "logback-core" % "0.9.29"
   ,"org.json4s" % "json4s-ast_2.12" % "3.5.2"
   ,"org.json4s" % "json4s-native_2.12" % "3.5.2"
+  ,"com.typesafe.akka" %% "akka-actor" % akkaVersion  // We use Akka Actor model for concurrent processing.
   ,"org.apache.commons" % "commons-csv" % "1.4"
   ,"com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.25"
   ,"com.github.sanskrit-coders" % "StarDict" % "1.1"
-  //    ,"com.github.sanskrit-coders" % "sanskrit-lttoolbox" % "0.1"
-  //  ,"com.github.sanskrit-coders" % "db-interface" % "1.8"
+  ,"com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5"
 )
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
