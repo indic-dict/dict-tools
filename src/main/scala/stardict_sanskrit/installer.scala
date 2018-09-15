@@ -51,12 +51,12 @@ class InstallerActor extends Actor with ActorLogging {
   def receive: PartialFunction[Any, Unit] = {
     case dict: Dictionary => {
       log.debug(dict.toString)
+      val httpResponseFuture = redirectingClient(HttpRequest(uri = dict.dictTarUrl))
+
+      // Download the file.
       val destinationPath = Paths.get(dict.destinationFolder,  dict.dictTarUrl.split("/").last)
       assert(new java.io.File(dict.destinationFolder).mkdirs())
-//      Files.createFile(destinationPath)
       val fileSink = FileIO.toPath(destinationPath)
-      log.debug(fileSink.toString())
-      val httpResponseFuture = redirectingClient(HttpRequest(uri = dict.dictTarUrl))
       val ioResultFuture = httpResponseFuture.flatMap(response => {
         response.entity.dataBytes.runWith(fileSink)
       })
