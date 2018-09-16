@@ -57,7 +57,10 @@ class InstallerActor extends Actor with ActorLogging {
       val httpResponseFuture = redirectingClient(HttpRequest(uri = dict.dictTarUrl))
 
       val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
-      if (new java.io.File(destinationTarPath.toString).exists()) {
+      val doesDictFolderExist = new java.io.File(destinationTarPath.getParent.toString).exists()
+      log.debug("Checking file existance " + doesDictFolderExist.toString)
+
+      if (doesDictFolderExist) {
         log.warning(s"Skipping pre-existing $dict")
         Future.fromTry(Success(s"Dict already exists: $dict")).pipeTo(sender())
       } else {
