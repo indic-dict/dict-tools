@@ -53,26 +53,30 @@ class InstallerActor extends Actor with ActorLogging {
 
   def receive: PartialFunction[Any, Unit] = {
     case dict: DictInfo => {
-      log.debug(dict.toString)
+      log.info(dict.toString)
       val httpResponseFuture = redirectingClient(HttpRequest(uri = dict.dictTarUrl))
 
-      // Download the file.
-      val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
-      new java.io.File(destinationTarPath.getParent.toString).mkdirs()
-      val fileSink = FileIO.toPath(destinationTarPath)
-      val downloadResultFuture = httpResponseFuture.flatMap(response => {
-        response.entity.dataBytes.runWith(fileSink)
-      })
-      downloadResultFuture.foreach(result => log.debug(s"Download result for $dict: ${result}"))
-      val extractionResult = downloadResultFuture.map( ioResult => ioResult.status match {
-        case Success(value) => tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
-          new java.io.File(destinationTarPath.toString).delete()
-          Success(value)
-        case Failure(exception) => Failure(exception)
+      if (new java.io.File(dict.dictTarUrl).exists()) {
+        log.warning(s"Skipping pre-existing $dict")
+        Future.fromTry(Success(s"Dict already exists: $dict")).pipeTo(sender())
+      } else {
+        // Download the file.
+        val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
+        new java.io.File(destinationTarPath.getParent.toString).mkdirs()
+        val fileSink = FileIO.toPath(destinationTarPath)
+        val downloadResultFuture = httpResponseFuture.flatMap(response => {
+          response.entity.dataBytes.runWith(fileSink)
+        })
+        downloadResultFuture.foreach(result => log.debug(s"Download result for $dict: ${result}"))
+        val extractionResult = downloadResultFuture.map( ioResult => ioResult.status match {
+          case Success(value) => tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
+            new java.io.File(destinationTarPath.toString).delete()
+            Success(s"Done with $dict")
+          case Failure(exception) => Failure(new Exception(s"Failed to deal with $dict", exception))
+        }
+        ).flatMap(Future.fromTry)
+        extractionResult.pipeTo(sender())
       }
-      ).flatMap(Future.fromTry)
-      extractionResult.pipeTo(sender())
-//      tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
     }
   }
 }
