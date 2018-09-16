@@ -20,7 +20,9 @@ libraryDependencies ++= Seq(
   ,"org.apache.commons" % "commons-csv" % "1.4"
   ,"org.apache.commons" % "commons-compress" % "1.14"
   ,"com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.25"
-  ,"com.github.sanskrit-coders" % "StarDict" % "1.1"
+  ,("com.github.sanskrit-coders" % "StarDict" % "1.1")
+    .exclude("ch.qos.logback", "logback-core")
+    .exclude("ch.qos.logback", "logback-classic")
   ,("com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5")
     .exclude("ch.qos.logback", "logback-core")
     .exclude("ch.qos.logback", "logback-classic")
