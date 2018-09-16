@@ -112,12 +112,10 @@ object tarProcessor extends BatchProcessor {
         } else {
             val parent = f.getParentFile
             if (!parent.isDirectory && !parent.mkdirs) throw new IOException("failed to create directory " + parent)
-            try {
-              val o = Files.newOutputStream(f.toPath)
-              try
-                IOUtils.copy(archiveInputStream, o)
-              finally if (o != null) o.close()
-            }
+            val o = Files.newOutputStream(f.toPath)
+            try
+              IOUtils.copy(archiveInputStream, o)
+            finally if (o != null) o.close()
           }
         }
       entry = archiveInputStream.getNextEntry

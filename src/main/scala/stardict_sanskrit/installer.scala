@@ -56,12 +56,12 @@ class InstallerActor extends Actor with ActorLogging {
       log.info(dict.toString)
       val httpResponseFuture = redirectingClient(HttpRequest(uri = dict.dictTarUrl))
 
-      if (new java.io.File(dict.dictTarUrl).exists()) {
+      val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
+      if (new java.io.File(destinationTarPath.toString).exists()) {
         log.warning(s"Skipping pre-existing $dict")
         Future.fromTry(Success(s"Dict already exists: $dict")).pipeTo(sender())
       } else {
         // Download the file.
-        val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
         new java.io.File(destinationTarPath.getParent.toString).mkdirs()
         val fileSink = FileIO.toPath(destinationTarPath)
         val downloadResultFuture = httpResponseFuture.flatMap(response => {
@@ -101,6 +101,7 @@ object installer {
       case Success(resultList) =>
         log.info(resultList.mkString("\n"))
         system.terminate()
+      case _ => log.error("This branch should not be reached!")
     }
 /*
 .foreach (someTry => someTry match {
