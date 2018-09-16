@@ -7,12 +7,6 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.io.Source
 import scala.sys.process._
-import org.apache.commons.compress.archivers.ArchiveEntry
-import org.apache.commons.compress.archivers.ArchiveException
-import org.apache.commons.compress.archivers.ArchiveInputStream
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
-import org.apache.commons.compress.compressors.CompressorException
-import org.apache.commons.compress.compressors.CompressorStreamFactory
 
 
 object tarProcessor extends BatchProcessor {
