@@ -8,7 +8,9 @@
 Tools to process (mainly Indic) dictionaries.
 
 # User instructions
-## Command line interface: See src/main/scala/stardict_sanskrit/commandInterface to see what's available.
+## Command line interface
+- Jar available [here](https://github.com/sanskrit-coders/dict-tools/raw/master/bin/artifacts/dict-tools.jar).
+- See src/main/scala/stardict_sanskrit/commandInterface to see what's available.
 
 Example invocation:
 ```
