@@ -19,14 +19,9 @@ libraryDependencies ++= Seq(
   ,"com.typesafe.akka" %% "akka-actor" % akkaVersion  // We use Akka Actor model for concurrent processing.
   ,"org.apache.commons" % "commons-csv" % "1.4"
   ,"org.apache.commons" % "commons-compress" % "1.14"
-  ,("com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.25")
+  , "com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.25"
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
-  , ("com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5")
-).map(_.exclude("org.slf4j", "*"))
-
-//insert one without exclusion
-libraryDependencies ++= Seq(
-  "ch.qos.logback" % "logback-classic" % "1.1.3"
+  , "com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5"
 )
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
