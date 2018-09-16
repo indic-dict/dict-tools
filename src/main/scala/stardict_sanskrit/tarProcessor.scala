@@ -1,16 +1,25 @@
 package stardict_sanskrit
 
 import java.io.{File, PrintWriter}
+import java.nio.file.{Path, Paths}
 
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.io.Source
 import scala.sys.process._
+import org.apache.commons.compress.archivers.ArchiveEntry
+import org.apache.commons.compress.archivers.ArchiveException
+import org.apache.commons.compress.archivers.ArchiveInputStream
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.compressors.CompressorException
+import org.apache.commons.compress.compressors.CompressorStreamFactory
+
 
 object tarProcessor extends BatchProcessor {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   val filePatternToTar = ".*\\.ifo|.*\\.idx|.*\\.dz|.*\\.ifo|.*\\.syn|.*LICENSE.*"
-  def writeTarsList(tarDestination: String, urlBase: String) = {
+
+  def writeTarsList(tarDestination: String, urlBase: String): Unit = {
     val outFileObj = new File(tarDestination + "/tars.MD")
     outFileObj.getParentFile.mkdirs
     val destination = new PrintWriter(outFileObj)
@@ -21,12 +30,12 @@ object tarProcessor extends BatchProcessor {
     destination.close()
   }
 
-  def makeTars(urlBase: String, file_pattern: String = ".*") = {
+  def makeTars(urlBase: String, file_pattern: String = ".*"): Unit = {
     log info "=======================makeTars"
     // Get timestamp.
     var dictionaries = getMatchingDictionaries(file_pattern).filter(_.ifoFile.isDefined)
-    log info (s"Got ${dictionaries.filter(_.tarFile.isDefined).length} tar files")
-    log info (s"Got ${dictionaries.filter(x => x.ifoFile.isDefined && !x.tarFile.isDefined).length}  dicts without tarFile files but with ifo file.")
+    log info s"Got ${dictionaries.count(_.tarFile.isDefined)} tar files"
+    log info s"Got ${dictionaries.count(x => x.ifoFile.isDefined && x.tarFile.isEmpty)}  dicts without tarFile files but with ifo file."
 
     // Remove excess and outdated tar files.
     if (file_pattern == ".*" && dictionaries.nonEmpty) {
@@ -48,7 +57,7 @@ object tarProcessor extends BatchProcessor {
     dictionaries = dictionaries.filterNot(_.tarFileNewerThanIfo())
 
 
-    log info(s"got ${dictionaries.length} dictionaries which need to be updated.")
+    log info s"got ${dictionaries.length} dictionaries which need to be updated."
     dictionaries.foreach(_.makeTar(filePatternToTar))
 
     if (dictionaries.nonEmpty) {
@@ -56,7 +65,7 @@ object tarProcessor extends BatchProcessor {
     }
   }
 
-  def compressAllDicts(basePaths: Seq[String], tarFilePath: String) = {
+  def compressAllDicts(basePaths: Seq[String], tarFilePath: String): Int = {
     val dictDirFiles = basePaths.flatMap(basePath => getRecursiveListOfFiles(new File(basePath))).
       filter(_.getName.matches(".*\\.ifo")).map(_.getParentFile)
     val targetTarFile = new File(tarFilePath)
@@ -68,8 +77,62 @@ object tarProcessor extends BatchProcessor {
     command.!
   }
 
+  import org.apache.commons.compress.archivers.ArchiveException
+  import org.apache.commons.compress.archivers.ArchiveInputStream
+  import org.apache.commons.compress.compressors.CompressorException
+  import java.io.BufferedInputStream
+  import java.io.FileInputStream
+  import java.io.FileNotFoundException
+  import org.apache.commons.compress.archivers.ArchiveStreamFactory
 
-  def getStats() = {
+  private val archiveStreamFactory = new ArchiveStreamFactory
+
+  import org.apache.commons.compress.compressors.CompressorStreamFactory
+  private val compressorStreamFactory = new CompressorStreamFactory(true /*equivalent to setDecompressConcatenated*/)
+
+  @throws[FileNotFoundException]
+  @throws[CompressorException]
+  @throws[ArchiveException]
+  private def inputStreamFromArchive(sourceFile: String) = { // To handle "IllegalArgumentException: Mark is not supported", we wrap with a BufferedInputStream
+    // as suggested in http://apache-commons.680414.n4.nabble.com/Compress-Reading-archives-within-archives-td746866.html
+    archiveStreamFactory.createArchiveInputStream(new BufferedInputStream(compressorStreamFactory.createCompressorInputStream(new BufferedInputStream(new FileInputStream(sourceFile)))))
+  }
+
+  def extractFile(archiveFileName: String, destinationPath: String): Unit = {
+    import org.apache.commons.compress.archivers.ArchiveInputStream
+    var archiveInputStream = inputStreamFromArchive(archiveFileName)
+    import org.apache.commons.compress.archivers.ArchiveEntry
+    import org.apache.commons.compress.archivers.ArchiveEntry
+    import org.apache.commons.compress.utils.IOUtils
+    import java.io.IOException
+    import java.io.OutputStream
+    import java.nio.file.Files
+    var entry = archiveInputStream.getNextEntry
+    while ( entry != null) {
+      if (!archiveInputStream.canReadEntryData(entry)) { // log something?
+        log.warn("Cannot read next entry!")
+      } else {
+        val f = new File(Paths.get(destinationPath, entry.getName).toString)
+        if (entry.isDirectory) {
+          if (!f.isDirectory && !f.mkdirs) throw new IOException("failed to create directory " + f)
+        } else {
+            val parent = f.getParentFile
+            if (!parent.isDirectory && !parent.mkdirs) throw new IOException("failed to create directory " + parent)
+            try {
+              val o = Files.newOutputStream(f.toPath)
+              try
+                IOUtils.copy(archiveInputStream, o)
+              finally if (o != null) o.close()
+            }
+          }
+        }
+      entry = archiveInputStream.getNextEntry
+      }
+    }
+
+
+  //noinspection AccessorLikeMethodIsUnit
+  def getStats(): Unit = {
     val indexIndexorum = "https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md"
     val indexes = Source.fromURL(indexIndexorum).mkString.replaceAll("<|>","").split("\n")
     val counts = indexes.map(index => {

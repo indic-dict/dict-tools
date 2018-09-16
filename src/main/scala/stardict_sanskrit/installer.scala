@@ -5,7 +5,7 @@ import akka.pattern.ask
 import java.nio.file.{Files, Paths}
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Status}
 import akka.http.scaladsl.Http
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, IOResult}
 import org.slf4j.{Logger, LoggerFactory}
@@ -19,14 +19,17 @@ import scala.reflect.io.File
 import scala.util.{Failure, Success}
 
 
-case class Dictionary(dictTarUrl: String, destinationFolder: String)
+case class DictInfo(dictTarUrl: String, destinationFolder: String, var dictName: String = null, var tarFilename : String = null) {
+  tarFilename = dictTarUrl.split("/").last
+  dictName = tarFilename.split("__").head
+}
 
 
 case class DictIndex(indexUrl: String, downloadPathPrefix: String, var downloadPath: String = "", var dictTarUrls: List[String] = List()) {
-  downloadPath = downloadPathPrefix + "/" + indexUrl.replaceAllLiterally("https://raw.githubusercontent.com/", "").replaceAllLiterally("master/", "").replaceAllLiterally("tars/tars.MD", "")
+  downloadPath = Paths.get(downloadPathPrefix, indexUrl.replaceAllLiterally("https://raw.githubusercontent.com/", "").replaceAllLiterally("master/", "").replaceAllLiterally("tars/tars.MD", "")).toString
   dictTarUrls = DictIndex.getUrlsFromIndexMd(url=indexUrl).toList
 
-  val dictionaries: List[Dictionary] = dictTarUrls.map(dictTarUrl => Dictionary(dictTarUrl=dictTarUrl, destinationFolder = downloadPath))
+  val dictionaries: List[DictInfo] = dictTarUrls.map(dictTarUrl => DictInfo(dictTarUrl=dictTarUrl, destinationFolder = downloadPath))
 //
 //  override def toString: String = s"indexUrl: ${indexUrl}\ndownloadPath: ${downloadPath}\ndictTarUrls: ${dictTarUrls.mkString("\n")}"
 }
@@ -49,18 +52,20 @@ class InstallerActor extends Actor with ActorLogging {
   private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpClient.httpClientWithRedirect(simpleClient)
 
   def receive: PartialFunction[Any, Unit] = {
-    case dict: Dictionary => {
+    case dict: DictInfo => {
       log.debug(dict.toString)
       val httpResponseFuture = redirectingClient(HttpRequest(uri = dict.dictTarUrl))
 
       // Download the file.
-      val destinationPath = Paths.get(dict.destinationFolder,  dict.dictTarUrl.split("/").last)
-      assert(new java.io.File(dict.destinationFolder).mkdirs())
-      val fileSink = FileIO.toPath(destinationPath)
-      val ioResultFuture = httpResponseFuture.flatMap(response => {
+      val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
+      new java.io.File(destinationTarPath.getParent.toString).mkdirs()
+      val fileSink = FileIO.toPath(destinationTarPath)
+      val downloadResultFuture = httpResponseFuture.flatMap(response => {
         response.entity.dataBytes.runWith(fileSink)
-      })
-      ioResultFuture.flatMap(ioResult => Future.fromTry(ioResult.status)).pipeTo(sender())
+      }).flatMap(ioResult => Future.fromTry(ioResult.status))
+      downloadResultFuture.
+        pipeTo(sender())
+//      tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
     }
   }
 }

@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   ,"org.json4s" % "json4s-native_2.12" % "3.5.2"
   ,"com.typesafe.akka" %% "akka-actor" % akkaVersion  // We use Akka Actor model for concurrent processing.
   ,"org.apache.commons" % "commons-csv" % "1.4"
+  ,"org.apache.commons" % "commons-compress" % "1.14"
   ,"com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.25"
   ,"com.github.sanskrit-coders" % "StarDict" % "1.1"
   ,"com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5"
