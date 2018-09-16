@@ -7,6 +7,14 @@
 # dict-tools
 Tools to process (mainly Indic) dictionaries.
 
+# User instructions
+## Command line interface: See src/main/scala/stardict_sanskrit/commandInterface to see what's available.
+
+Example invocation:
+```
+java -jar bin/artifacts/dict-tools.jar install /home/vvasuki/sanskrit-coders/stardict-dicts-installed/ https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md
+```
+
 # Dictionary and packaging software developer instructions
 ## Update /bin used by dictionary users
 To generate the bin/artifacts/dict-tools.jar artifact, which is used by dictionary developers during packaging:

@@ -2,6 +2,10 @@ package stardict_sanskrit
 
 import org.slf4j.LoggerFactory
 
+/**
+  * Example invocation:
+  * java -jar bin/artifacts/dict-tools.jar install /home/vvasuki/sanskrit-coders/stardict-dicts-installed/ https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md
+  */
 object commandInterface {
   private val log = LoggerFactory.getLogger(getClass.getName)
 
