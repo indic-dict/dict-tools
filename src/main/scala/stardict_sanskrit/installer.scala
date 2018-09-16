@@ -62,9 +62,16 @@ class InstallerActor extends Actor with ActorLogging {
       val fileSink = FileIO.toPath(destinationTarPath)
       val downloadResultFuture = httpResponseFuture.flatMap(response => {
         response.entity.dataBytes.runWith(fileSink)
-      }).flatMap(ioResult => Future.fromTry(ioResult.status))
-      downloadResultFuture.
-        pipeTo(sender())
+      })
+      downloadResultFuture.foreach(result => log.debug(s"Download result for $dict: ${result}"))
+      val extractionResult = downloadResultFuture.map( ioResult => ioResult.status match {
+        case Success(value) => tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
+          new java.io.File(destinationTarPath.toString).delete()
+          Success(value)
+        case Failure(exception) => Failure(exception)
+      }
+      ).flatMap(Future.fromTry)
+      extractionResult.pipeTo(sender())
 //      tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
     }
   }
@@ -77,7 +84,7 @@ object installer {
 
   def install(destination: String, indexOfIndicesUrl: String): Unit = {
     val indices = DictIndex.getUrlsFromIndexMd(indexOfIndicesUrl)
-    val dictionaries = indices.map(new DictIndex(_, downloadPathPrefix = destination)).flatMap(index => index.dictionaries).take(1)
+    val dictionaries = indices.map(new DictIndex(_, downloadPathPrefix = destination)).flatMap(index => index.dictionaries)
 
     val installerActorRef = system.actorOf(Props[InstallerActor], "installerActor")
     // Actor ask timeout
