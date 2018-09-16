@@ -22,7 +22,8 @@ libraryDependencies ++= Seq(
   ,("com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.25")
     .exclude("org.slf4j", "*")
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
-  , "com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5"
+  , ("com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5")
+    .exclude("org.slf4j", "*")
 )
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
