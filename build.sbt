@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
 
 excludeDependencies ++= Seq(
   // commons-logging is replaced by jcl-over-slf4j
-  ExclusionRule("commons-logging", "commons-logging")
+  ExclusionRule("org.slf4j", "*")
 )
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
