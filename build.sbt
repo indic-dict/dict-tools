@@ -12,8 +12,8 @@ resolvers += Resolver.sonatypeRepo("releases")
 resolvers += Resolver.sonatypeRepo("snapshots")
 
 libraryDependencies ++= Seq(
-  "ch.qos.logback" % "logback-classic" % "0.9.29" % "provided"
-  ,"ch.qos.logback" % "logback-core" % "0.9.29" % "provided"
+  "ch.qos.logback" % "logback-classic" % "0.9.29"
+  ,"ch.qos.logback" % "logback-core" % "0.9.29"
   ,"org.json4s" % "json4s-ast_2.12" % "3.5.2"
   ,"org.json4s" % "json4s-native_2.12" % "3.5.2"
   ,"com.typesafe.akka" %% "akka-actor" % akkaVersion  // We use Akka Actor model for concurrent processing.
@@ -21,7 +21,9 @@ libraryDependencies ++= Seq(
   ,"org.apache.commons" % "commons-compress" % "1.14"
   ,"com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.25"
   ,"com.github.sanskrit-coders" % "StarDict" % "1.1"
-  ,"com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5"
+  ,("com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5")
+    .exclude("ch.qos.logback", "logback-core")
+    .exclude("ch.qos.logback", "logback-classic")
 )
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
