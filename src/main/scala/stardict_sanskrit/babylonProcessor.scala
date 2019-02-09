@@ -1,6 +1,6 @@
 package stardict_sanskrit
 
-import java.io.{File, PrintWriter, StringWriter}
+import java.io.{File, PrintWriter}
 
 import org.slf4j.{Logger, LoggerFactory}
 import sanskritnlp.dictionary.{BabylonDictionary, babylonTools}
@@ -12,51 +12,21 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
-object headwordTransformers{
-  private val log: Logger = LoggerFactory.getLogger(getClass.getName)
-  def addDevanaagariiFromOtherIndic(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
-    x => try {
-      transliterator.getDevanagariiFromOtherIndicString(x).getOrElse("")
-    } catch {
-      case ex: Exception => {
-        val sw = new StringWriter
-        log.error(headwords_original.toString)
-        log.error(sw.toString)
-        log.error(x)
-        ""
-      }
-    }))
-
-  def addOptitransFromDevanaagarii(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
-    x => try {
-      transliterator.transliterate(x, "dev", "optitrans")
-    } catch {
-      case ex: Exception => {
-        val sw = new StringWriter
-        ex.printStackTrace(new PrintWriter(sw))
-        log.error(sw.toString)
-        log.error(x)
-        ""
-      }
-    }))
-
-  def addNonAnsusvaaraVariantsFromDevanaagarii(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
-    x => try {
-      transliterator.getNonAnusvaaraVariant(x)
-    } catch {
-      case ex: Exception => {
-        val sw = new StringWriter
-        ex.printStackTrace(new PrintWriter(sw))
-        log.error(sw.toString)
-        log.error(x)
-        ""
-      }
-    }))
-}
-
+/**
+  * Processes babylon files in various ways. For example - adds devanagari or opitrans headwords; or produces stardict files.
+  * 
+  * Major entry points are: fixHeadwordsInFinalFile (and its wrappers like addOptitrans), makeStardict, main.
+  */
 object babylonProcessor extends BatchProcessor{
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
 
+  /**
+    * Gets dictionaries matching a certain pattern.
+    * 
+    * @param file_pattern
+    * @param baseDir
+    * @return
+    */
   override def getMatchingDictionaries(file_pattern: String, baseDir: String = "."): List[DictionaryFolder] = {
     val dictionaries = super.getMatchingDictionaries(file_pattern, baseDir).filter(_.getFinalBabylonFile != null)
     log info (s"Got ${dictionaries.count(_.babylonFinalFile.isDefined)} babylon_final files")
@@ -64,7 +34,7 @@ object babylonProcessor extends BatchProcessor{
     dictionaries
   }
 
-  def getRecursiveListOfFinalBabylonDicts(basePaths: Seq[String]): Seq[BabylonDictionary] = {
+  private def getRecursiveListOfFinalBabylonDicts(basePaths: Seq[String]): Seq[BabylonDictionary] = {
     val babylonFiles = getRecursiveSetOfDictDirs(basePaths=basePaths).map(_.getFinalBabylonFile).filterNot(_ == null)
     val babylonDicts = babylonFiles.map(x => {
       val dict = new BabylonDictionary(name_in = x.getName, head_language = "")
@@ -144,20 +114,37 @@ object babylonProcessor extends BatchProcessor{
     fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=toDevanAgarIAndOptitrans)
   }
 
+  /**
+    * Add optitrans and devanAgarI headwords from IAST. 
+    * 
+    * @param file_pattern
+    * @param baseDir
+    * @param indicWordSet
+    */
   def getDevanagariOptitransFromIastIfIndic(file_pattern: String = ".*", baseDir: String = ".", indicWordSet: mutable.HashSet[String] = mutable.HashSet[String]()): Unit = {
     log info "=======================Adding optitrans headwords, making final babylon file."
+    
     val indicWordSetDev = indicWordSet.filter(devanAgarI.isEncoding)
+    
     def isIndic(word: String) = indicWordSetDev.contains(iast.fromDevanagari(word)) || iast.isEncoding(word)
     def transliterateIfIndic(x: String, destSchema: String) = if(isIndic(x)) {
       transliterator.transliterate(x, "iast", destSchema)
     } else {
       x
     }
+    
     val toDevanAgarIAndOptitrans = (headwords_original:Array[String]) => headwords_original.map(
       x => transliterateIfIndic(x, "dev")) ++ headwords_original.map(x => transliterateIfIndic(x, "optitrans"))
+    
     fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=toDevanAgarIAndOptitrans)
   }
 
+  /**
+    * Makes stardict files from babylon files.
+    * 
+    * @param file_pattern
+    * @param babylon_binary
+    */
   def makeStardict(file_pattern: String = ".*", babylon_binary: String) = {
     log info "=======================makeStardict"
     var dictionaries = getMatchingDictionaries(file_pattern)
@@ -170,6 +157,14 @@ object babylonProcessor extends BatchProcessor{
     dictionaries.foreach(_.makeStardictFromBabylonFile(babylon_binary))
   }
 
+  /**
+    * Transliterates all words (mentioned to wordListFilePath) in sourceScheme to devanAgarI.
+    * 
+    * @param inFilePath
+    * @param outFilePath
+    * @param sourceScheme
+    * @param wordListFilePath
+    */
   def transliterateAllIndicToDevanagarI(inFilePath: String, outFilePath: String, sourceScheme:String, wordListFilePath: String ="/home/vvasuki/stardict-sanskrit/wordlists/words_sa_dev.txt") = {
     var wordSet = Source.fromFile(wordListFilePath, "utf8").getLines.map(_.split("\t").headOption.getOrElse("न")).map(transliterator.transliterate(_, transliterator.scriptDevanAgarI, sourceScheme)).toSet
     val outFileObj = new File(outFilePath)
@@ -183,6 +178,10 @@ object babylonProcessor extends BatchProcessor{
   }
 
 
+  /**
+    * An ad-hoc test/ processing entry point.
+    * @param args
+    */
   def main(args: Array[String]): Unit = {
     val dictPattern = ".*"
     val workingDirInit = System.getProperty("user.dir")
@@ -192,7 +191,7 @@ object babylonProcessor extends BatchProcessor{
     // stripNonOptitransHeadwords(dictPattern, workingDir)
     // getDevanagariOptitransFromIast(dictPattern, workingDir)
 //    getDevanagariOptitransFromIastIfIndic(dictPattern, workingDir, getWordToDictsMapFromPaths(List("/home/vvasuki/stardict-pali/pali-head/").keys))
-     addOptitrans(file_pattern = "pu.*", baseDir = "/home/vvasuki/stardict-sanskrit/sa-vyAkaraNa")
+     addOptitrans(file_pattern = "Me.*", baseDir = "/home/vvasuki/indic-dict/stardict-sanskrit/sa-head/en-entries")
     // makeStardict(dir, "/home/vvasuki/stardict/tools/src/babylon")
   }
 }

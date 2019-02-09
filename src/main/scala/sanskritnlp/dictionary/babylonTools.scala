@@ -89,25 +89,29 @@ object babylonTools {
 
     src = Source.fromFile(infileStr, "utf8")
     src.getLines.dropWhile(isHeadLine).sliding(3,3).foreach( t => {
-      val headwordsLine = t(0)
-      val definitionLine = t(1)
-      try {
-        val headwordsOriginal = headwordsLine.split('|')
-        var headwordsFixed = headwordTransformer(headwordsOriginal).toList.distinct
-        if(sort) {
-          headwordsFixed = headwordsFixed.sortWith(headwordSorter)
-        }
-        // Sorting with sortwith is risky - can fail and produce no output line. Skipping that.
-        destination.println(headwordsFixed.mkString("|"))
-        destination.println(definitionLine)
-        destination.println()
-      } catch {
-        case ex: Exception => {
-          log error ex.toString
-          val sw = new StringWriter
-          ex.printStackTrace(new PrintWriter(sw))
-          log.error(sw.toString)
-          log error "line: " + t.toString()
+      if (t.filterNot(_.isEmpty).isEmpty) {
+        log.warn("Got empty lines - probably end of file. Skipping.")
+      } else {
+        val headwordsLine = t(0)
+        val definitionLine = t(1)
+        try {
+          val headwordsOriginal = headwordsLine.split('|')
+          var headwordsFixed = headwordTransformer(headwordsOriginal).toList.distinct
+          if(sort) {
+            headwordsFixed = headwordsFixed.sortWith(headwordSorter)
+          }
+          // Sorting with sortwith is risky - can fail and produce no output line. Skipping that.
+          destination.println(headwordsFixed.mkString("|"))
+          destination.println(definitionLine)
+          destination.println()
+        } catch {
+          case ex: Exception => {
+            log error ex.toString
+            val sw = new StringWriter
+            ex.printStackTrace(new PrintWriter(sw))
+            log.error(sw.toString)
+            log error "line: " + t.toString()
+          }
         }
       }
     })
