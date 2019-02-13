@@ -14,7 +14,7 @@ Tools to process (mainly Indic) dictionaries.
 
 Example invocation:
 ```
-java -jar bin/artifacts/dict-tools.jar install /home/vvasuki/sanskrit-coders/stardict-dicts-installed/ https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md
+java -jar bin/artifacts/dict-tools.jar install /home/vvasuki/sanskrit-coders/stardict-dicts-installed/ https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md true
 ```
 
 # Dictionary and packaging software developer instructions

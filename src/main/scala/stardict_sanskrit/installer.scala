@@ -1,5 +1,4 @@
 package stardict_sanskrit
-import java.io.File
 
 import akka.pattern.ask
 import java.nio.file.{Files, Paths}
@@ -11,11 +10,13 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings, IOResult}
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.{RichHttpClient, Utils}
 import akka.http.scaladsl.model._
-import akka.stream.scaladsl.{FileIO, Source}
 import akka.util.Timeout
+import de.heikoseeberger.akkahttpjson4s.Json4sSupport.ShouldWritePretty.False
+import sys.process._
+import java.net.URL
+import java.io.File
 
 import scala.concurrent.Future
-import scala.reflect.io.File
 import scala.util.{Failure, Success}
 
 
@@ -52,33 +53,22 @@ class InstallerActor extends Actor with ActorLogging {
   private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpClient.httpClientWithRedirect(simpleClient)
 
   def receive: PartialFunction[Any, Unit] = {
-    case dict: DictInfo => {
+    case (dict: DictInfo, overwrite: Boolean) => {
       log.info(dict.toString)
-      val httpResponseFuture = redirectingClient(HttpRequest(uri = dict.dictTarUrl))
-
       val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
-      val doesDictFolderExist = new java.io.File(destinationTarPath.getParent.toString).exists()
-      log.debug("Checking file existance " + doesDictFolderExist.toString)
-
-      if (doesDictFolderExist) {
+      val dictionaryFolder = new java.io.File(destinationTarPath.getParent.toString)
+      val doesDictExist = dictionaryFolder.exists() && dictionaryFolder.listFiles().length > 3
+      if (!overwrite && doesDictExist) {
         log.warning(s"Skipping pre-existing $dict")
         Future.fromTry(Success(s"Dict already exists: $dict")).pipeTo(sender())
       } else {
         // Download the file.
         new java.io.File(destinationTarPath.getParent.toString).mkdirs()
-        val fileSink = FileIO.toPath(destinationTarPath)
-        val downloadResultFuture = httpResponseFuture.flatMap(response => {
-          response.entity.dataBytes.runWith(fileSink)
-        })
-        downloadResultFuture.foreach(result => log.debug(s"Download result for $dict: ${result}"))
-        val extractionResult = downloadResultFuture.map( ioResult => ioResult.status match {
-          case Success(value) => tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
-            new java.io.File(destinationTarPath.toString).delete()
-            Success(s"Done with $dict")
-          case Failure(exception) => Failure(new Exception(s"Failed to deal with $dict", exception))
-        }
-        ).flatMap(Future.fromTry)
-        extractionResult.pipeTo(sender())
+        installer.fileDownloader(dict.dictTarUrl, destinationTarPath.toString)
+        tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
+        new java.io.File(destinationTarPath.toString).delete()
+        val extractionResult = Success(s"Done with $dict")
+        Future.fromTry(extractionResult).pipeTo(sender())
       }
     }
   }
@@ -88,8 +78,11 @@ object installer {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   val system = ActorSystem("installerActorSystem")
 
+  def fileDownloader(url: String, filename: String) = {
+    new URL(url) #> new File(filename) !!
+  }
 
-  def install(destination: String, indexOfIndicesUrl: String): Unit = {
+  def install(destination: String, indexOfIndicesUrl: String, overwrite:Boolean=false): Unit = {
     val indices = DictIndex.getUrlsFromIndexMd(indexOfIndicesUrl)
     val dictionaries = indices.map(new DictIndex(_, downloadPathPrefix = destination)).flatMap(index => index.dictionaries)
 
@@ -99,7 +92,7 @@ object installer {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     //    log.debug(indices.mkString(","))
-    val resultFutureList = dictionaries.map( dictionary =>  ask(installerActorRef, dictionary) )
+    val resultFutureList = dictionaries.map( dictionary =>  ask(installerActorRef, (dictionary, overwrite)) )
     val futureOfResults: Unit = Utils.getFutureOfTrys(resultFutureList). onComplete {
       case Success(resultList) =>
         log.info(resultList.mkString("\n"))
@@ -116,6 +109,6 @@ object installer {
   }
 
   def main(args: Array[String]): Unit = {
-    install(destination = "/home/vvasuki/sanskrit-coders/stardict-dicts-installed/", indexOfIndicesUrl = "https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md")
+    install(destination = "/home/vvasuki/indic-dict/stardict-dicts-installed/", indexOfIndicesUrl = "https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md", overwrite=true)
   }
 }

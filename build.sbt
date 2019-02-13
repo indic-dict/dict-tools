@@ -4,8 +4,8 @@ scalaVersion := "2.12.6"
 
 // The library versions should be as mutually compatible as possible - else there will be weird runtime errors.
 // We just use whatever we found compatible with akka-http-core in scala-utils_2.12
-val akkaVersion = "2.5.16"
-val akkaHttpVersion = "10.0.11"
+val akkaVersion = "2.5.19"
+val akkaHttpVersion = "10.1.7"
 
 
 resolvers += Resolver.sonatypeRepo("releases")
