@@ -1,6 +1,6 @@
 #! /bin/bash
 shopt -s expand_aliases
-source ~/.bash_aliases.laptop
+source ~/.bash_aliases
 
 
 GIT_MODE=$1 # gp or git pull
