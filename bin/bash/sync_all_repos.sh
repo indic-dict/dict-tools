@@ -8,8 +8,8 @@ set -o verbose
 shopt -s expand_aliases
 source ~/.bash_aliases
 CUR_DIR=$(pwd)
-FREQUENT_REPOS=(~/stardict-sanskrit/ ~/sanskritnlpjava ~/subhAShita-pratimAlA-scala)
-INFREQUENT_REPOS=(~/stardict-tamil/ ~/stardict-pali/ ~/stardict-hindi/ ~/stardict-kannada/ ~/stardict-telugu/ ~/zim-sa/ ~/m17n-db ~/subhAShita-db-sanskrit)
+FREQUENT_REPOS=(~/indic-dict/stardict-sanskrit/ ~/indic-dict/stardict-ayurveda/ ~/indic-dict/stardict-sanskrit-kAvya/ ~/indic-dict/stardict-sanskrit-vyAkaraNa/ )
+INFREQUENT_REPOS=(~/indic-dict/stardict-tamil/ ~/indic-dict/stardict-malayalam/ ~/indic-dict/stardict-kannada/ ~/indic-dict/stardict-telugu/  ~/indic-dict/stardict-pali/ ~/indic-dict/stardict-hindi/ ~/indic-dict/stardict-marathi/ ~/indic-dict/stardict-oriya/ ~/indic-dict/stardict-panjabi/ ~/indic-dict/stardict-sinhala/ ~/indic-dict/stardict-assamese/ ~/indic-dict/stardict-nepali/ ~/indic-dict/stardict-english/  )
 REPOS=(${FREQUENT_REPOS[@]} ${INFREQUENT_REPOS[@]})
 for repo in "${REPOS[@]}"; 
 do echo processing: $repo;
