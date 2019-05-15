@@ -7,6 +7,11 @@ import sanskrit_coders.Utils
 
 import scala.sys.process._
 
+/**
+  * Every dictionary has a folder with several files, of which the babylon and stardict files are particularly notable. This class represents such a dictionary folder.
+  * 
+  * @param name
+  */
 class DictionaryFolder(val name: String) {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   var dirName: String = _
@@ -74,7 +79,7 @@ class DictionaryFolder(val name: String) {
   def makeStardictFromBabylonFile(babylon_binary: String): AnyVal = {
     val babFile = getFinalBabylonFile
     log info (f"Making stardict from: ${babFile.getCanonicalPath}")
-    val (stdout, stderr) = Utils.runCommandLimitOutput(s"$babylon_binary ${babFile.getCanonicalPath}")
+    val (status, stdout, stderr) = Utils.runCommandLimitOutput(s"$babylon_binary ${babFile.getCanonicalPath}")
     log info ("stdout excerpt: \n" + stdout)
     log info ("stderr excerpt: \n" + stderr)
     dictFile = dirFile.listFiles.map(_.getCanonicalFile).filter(_.getName.matches(s".*/?${dirName}.dict")).headOption

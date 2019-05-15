@@ -24,15 +24,15 @@ object tarProcessor extends BatchProcessor {
     destination.close()
   }
 
-  def makeTars(urlBase: String, file_pattern: String = ".*"): Unit = {
+  def makeTars(urlBase: String, dictPattern: String = ".*"): Unit = {
     log info "=======================makeTars"
     // Get timestamp.
-    var dictionaries = getMatchingDictionaries(file_pattern).filter(_.ifoFile.isDefined)
+    var dictionaries = getMatchingDictionaries(dictPattern).filter(_.ifoFile.isDefined)
     log info s"Got ${dictionaries.count(_.tarFile.isDefined)} tar files"
     log info s"Got ${dictionaries.count(x => x.ifoFile.isDefined && x.tarFile.isEmpty)}  dicts without tarFile files but with ifo file."
 
     // Remove excess and outdated tar files.
-    if (file_pattern == ".*" && dictionaries.nonEmpty) {
+    if (dictPattern == ".*" && dictionaries.nonEmpty) {
       val tarDirFile = dictionaries.head.getTarDirFile
       if (tarDirFile.exists()) {
         val excessTarFiles = tarDirFile.listFiles.filterNot(x => {
@@ -126,10 +126,12 @@ object tarProcessor extends BatchProcessor {
   //noinspection AccessorLikeMethodIsUnit
   def getStats(): Unit = {
     val indexIndexorum = "https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md"
+    //noinspection SourceNotClosed
     val indexes = Source.fromURL(indexIndexorum).mkString.replaceAll("<|>","").split("\n")
     val counts = indexes.map(index => {
       // Example: https://raw.githubusercontent.com/sanskrit-coders/stardict-sanskrit/master/sa-head/en-entries/tars/tars.MD
       val indexShortName = index.replaceAll("https://raw.githubusercontent.com/sanskrit-coders/|master/|tars/tars.MD", "")
+      //noinspection SourceNotClosed
       val indexCount = Source.fromURL(index).mkString.replaceAll("<|>","").split("\n").length
       indexShortName -> indexCount
     })

@@ -70,13 +70,13 @@ object babylonProcessor extends BatchProcessor{
     // sys.exit()
   }
 
-  def addOptitrans(file_pattern: String = ".*", baseDir: String = ".") = {
+  def addOptitrans(dictPattern: String = ".*", baseDir: String = ".") = {
     log info "=======================Adding optitrans headwords, making final babylon file."
     val headwordTransformer = (headwords_original:Array[String]) => (
       headwordTransformers.addOptitransFromDevanaagarii(
         headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwordTransformers.addDevanaagariiFromOtherIndic(headwords_original)))
       ).filterNot(_.isEmpty).distinct
-    fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=headwordTransformer, sort=false)
+    fixHeadwordsInFinalFile(file_pattern=dictPattern, baseDir=baseDir, headwordTransformer=headwordTransformer, sort=false)
   }
 
   def stripNonOptitransHeadwords(file_pattern: String = ".*", baseDir: String = "."): Unit = {
@@ -142,19 +142,19 @@ object babylonProcessor extends BatchProcessor{
   /**
     * Makes stardict files from babylon files.
     * 
-    * @param file_pattern
-    * @param babylon_binary
+    * @param dictPattern
+    * @param babylonBinary
     */
-  def makeStardict(file_pattern: String = ".*", babylon_binary: String) = {
+  def makeStardict(dictPattern: String = ".*", babylonBinary: String) = {
     log info "=======================makeStardict"
-    var dictionaries = getMatchingDictionaries(file_pattern)
+    var dictionaries = getMatchingDictionaries(dictPattern)
 
     var dictsToIgnore = dictionaries.filter(_.ifoFileNewerThanBabylon())
     if (dictsToIgnore.nonEmpty) {
       log warn s"Ignoring these files, whose dict files seem updated: " + dictsToIgnore.mkString("\n")
     }
     dictionaries = dictionaries.filterNot(_.ifoFileNewerThanBabylon())
-    dictionaries.foreach(_.makeStardictFromBabylonFile(babylon_binary))
+    dictionaries.foreach(_.makeStardictFromBabylonFile(babylonBinary))
   }
 
   /**
@@ -191,7 +191,7 @@ object babylonProcessor extends BatchProcessor{
     // stripNonOptitransHeadwords(dictPattern, workingDir)
     // getDevanagariOptitransFromIast(dictPattern, workingDir)
 //    getDevanagariOptitransFromIastIfIndic(dictPattern, workingDir, getWordToDictsMapFromPaths(List("/home/vvasuki/stardict-pali/pali-head/").keys))
-     addOptitrans(file_pattern = "Me.*", baseDir = "/home/vvasuki/indic-dict/stardict-sanskrit/sa-head/en-entries")
+     addOptitrans(dictPattern = "Me.*", baseDir = "/home/vvasuki/indic-dict/stardict-sanskrit/sa-head/en-entries")
     // makeStardict(dir, "/home/vvasuki/stardict/tools/src/babylon")
   }
 }
