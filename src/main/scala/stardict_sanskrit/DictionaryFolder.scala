@@ -3,6 +3,7 @@ package stardict_sanskrit
 import java.io.File
 
 import org.slf4j.{Logger, LoggerFactory}
+import sanskrit_coders.Utils
 
 import scala.sys.process._
 
@@ -73,7 +74,9 @@ class DictionaryFolder(val name: String) {
   def makeStardictFromBabylonFile(babylon_binary: String): AnyVal = {
     val babFile = getFinalBabylonFile
     log info (f"Making stardict from: ${babFile.getCanonicalPath}")
-    s"$babylon_binary ${babFile.getCanonicalPath}".!
+    val (stdout, stderr) = Utils.runCommandLimitOutput(s"$babylon_binary ${babFile.getCanonicalPath}")
+    log info ("stdout excerpt: \n" + stdout)
+    log info ("stderr excerpt: \n" + stderr)
     dictFile = dirFile.listFiles.map(_.getCanonicalFile).filter(_.getName.matches(s".*/?${dirName}.dict")).headOption
     if (dictFile.nonEmpty) {
       s"dictzip ${dictFile.get.getCanonicalPath}".!

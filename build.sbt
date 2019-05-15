@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
   ,"org.apache.commons" % "commons-compress" % "1.18"
   , "com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.31"
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
-  , "com.github.sanskrit-coders" % "scala-utils_2.12" % "0.5"
+  , "com.github.sanskrit-coders" % "scala-utils_2.12" % "1.2"
 ).map(_.exclude("org.slf4j", "*"))
 
 //insert one without exclusion
