@@ -104,10 +104,10 @@ object commandInterface {
         log.debug(commandConfig.toString)
         commandConfig.mode.get match {
           case "install" => installer.install(destination = commandConfig.destinationPath.get, indexOfIndicesUrl = commandConfig.dictRepoIndexUrl.get, overwrite = commandConfig.overwrite.getOrElse(false))
-          case "addStandardHeadwords" => babylonProcessor.addOptitrans(dictPattern = commandConfig.dictPattern.get)
-          case "makeTars" => tarProcessor.makeTars(urlBase =commandConfig.urlBase.get, dictPattern = commandConfig.dictPattern.get)
+          case "addStandardHeadwords" => babylonProcessor.addOptitrans(dictPattern = commandConfig.dictPattern.get, overwrite = commandConfig.overwrite.getOrElse(false))
+          case "makeTars" => tarProcessor.makeTars(urlBase =commandConfig.urlBase.get, dictPattern = commandConfig.dictPattern.get, overwrite = commandConfig.overwrite.getOrElse(false))
           case "compressAllDicts" => tarProcessor.compressAllDicts(basePaths = commandConfig.inputPaths.get.split(","), tarFilePath =  commandConfig.destinationPath.get)
-          case "makeStardict" => babylonProcessor.makeStardict(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get)
+          case "makeStardict" => babylonProcessor.makeStardict(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false))
           case "writeTarsList" => tarProcessor.writeTarsList(tarDestination =  commandConfig.destinationPath.get, urlBase =  commandConfig.urlBase.get)
           case unknownCommand => log.error(s"Do not recognize $unknownCommand")
         }

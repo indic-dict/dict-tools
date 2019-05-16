@@ -45,16 +45,15 @@ object babylonProcessor extends BatchProcessor{
     babylonDicts.toList.sortBy(_.fileLocation)
   }
 
-  def fixHeadwordsInFinalFile(file_pattern: String = ".*", baseDir: String = ".", headwordTransformer: (Array[String]) => Array[String],
-                              finalFileExtension: String = ".babylon_final", sort: Boolean = true) = {
+  def fixHeadwordsInFinalFile(file_pattern: String = ".*", baseDir: String = ".", headwordTransformer: (Array[String]) => Array[String], finalFileExtension: String = ".babylon_final", sort: Boolean = true, overwrite: Boolean = false) = {
     val files_to_ignore = Set("spokensanskrit.babylon")
     var dictionaries = getMatchingDictionaries(file_pattern, baseDir).filter(_.babylonFile.isDefined)
     log info (s"Got ${dictionaries.length} babylon files")
-    var dictsToIgnore = dictionaries.filter(_.babylonFinalFileNewerThanBabylon())
+    var dictsToIgnore = dictionaries.filter(!overwrite && _.babylonFinalFileNewerThanBabylon())
     if (dictsToIgnore.nonEmpty) {
       log warn s"Ignoring these files, whose final babylon files seem updated:" + dictsToIgnore.mkString("\n")
     }
-    dictionaries = dictionaries.filterNot(_.babylonFinalFileNewerThanBabylon)
+    dictionaries = dictionaries.filterNot(dictsToIgnore.contains(_))
     log info (s"Got ${dictionaries.length} babylon files")
 
     val babylon_files = dictionaries.map(_.babylonFile)
@@ -70,13 +69,13 @@ object babylonProcessor extends BatchProcessor{
     // sys.exit()
   }
 
-  def addOptitrans(dictPattern: String = ".*", baseDir: String = ".") = {
+  def addOptitrans(dictPattern: String = ".*", baseDir: String = ".", overwrite: Boolean = false) = {
     log info "=======================Adding optitrans headwords, making final babylon file."
     val headwordTransformer = (headwords_original:Array[String]) => (
       headwordTransformers.addOptitransFromDevanaagarii(
         headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwordTransformers.addDevanaagariiFromOtherIndic(headwords_original)))
       ).filterNot(_.isEmpty).distinct
-    fixHeadwordsInFinalFile(file_pattern=dictPattern, baseDir=baseDir, headwordTransformer=headwordTransformer, sort=false)
+    fixHeadwordsInFinalFile(file_pattern=dictPattern, baseDir=baseDir, headwordTransformer=headwordTransformer, sort=false, overwrite=overwrite)
   }
 
   def stripNonOptitransHeadwords(file_pattern: String = ".*", baseDir: String = "."): Unit = {
@@ -145,15 +144,15 @@ object babylonProcessor extends BatchProcessor{
     * @param dictPattern
     * @param babylonBinary
     */
-  def makeStardict(dictPattern: String = ".*", babylonBinary: String) = {
+  def makeStardict(dictPattern: String = ".*", babylonBinary: String, overwrite: Boolean = false) = {
     log info "=======================makeStardict"
     var dictionaries = getMatchingDictionaries(dictPattern)
 
-    var dictsToIgnore = dictionaries.filter(_.ifoFileNewerThanBabylon())
+    var dictsToIgnore = dictionaries.filter(!overwrite && _.ifoFileNewerThanBabylon())
     if (dictsToIgnore.nonEmpty) {
       log warn s"Ignoring these files, whose dict files seem updated: " + dictsToIgnore.mkString("\n")
     }
-    dictionaries = dictionaries.filterNot(_.ifoFileNewerThanBabylon())
+    dictionaries = dictionaries.filterNot(dictsToIgnore.contains(_))
     dictionaries.foreach(_.makeStardictFromBabylonFile(babylonBinary))
   }
 
@@ -179,19 +178,57 @@ object babylonProcessor extends BatchProcessor{
 
 
   /**
+    * 
+    * @param dictPattern
+    * @param babylonBinary
+    * @param tarBaseUrl - example value https://github.com/indic-dict/stardict-marathi/raw/gh-pages/ma-head/other-entries/tars
+    * @param githubToken
+    */
+  def makeIndicStardictTar(dictPattern: String = ".*", babylonBinary: String, tarBaseUrl: String, githubToken: Option[String], overwrite: Boolean = false) = {
+    var dictionaries = getMatchingDictionaries(dictPattern)
+    val githubRepo=GithubRepo.fromUrl(url=tarBaseUrl, githubToken=githubToken)
+    log info "=======================Full build from babylon to stardict tar."
+    dictionaries.foreach(dictionary => {
+      if (dictionary.babylonFile.isDefined) {
+        val tarFileMatchesBabylon = dictionary.tarFileMatchesSource(githubRepo=githubRepo)
+        if (!tarFileMatchesBabylon || overwrite) {
+          addOptitrans(dictPattern = dictionary.dirName, overwrite = overwrite)
+          dictionary.makeStardictFromBabylonFile(babylonBinary)
+          dictionary.makeTar()
+          tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
+        } else {
+          log info(s"Tar file for ${dictionary.name} is newer. Not overwriting.")
+        }
+      } else {
+        log.info(s"**** No babylon file in ${dictionary.dirName} - skipping.")
+        if (dictionary.ifoFile.isDefined) {
+          val tarFileMatchesIfo = dictionary.tarFileMatchesSource(sourceFile = dictionary.ifoFile.get, githubRepo=githubRepo)
+          if (!tarFileMatchesIfo || overwrite) {
+            dictionary.makeTar()
+          }
+        } else {
+          log.info(s"**** No babylon or ifo file in ${dictionary.dirName} - skipping.")
+        }
+      }
+    })
+  }
+
+  
+  /**
     * An ad-hoc test/ processing entry point.
     * @param args
     */
   def main(args: Array[String]): Unit = {
     val dictPattern = ".*"
     val workingDirInit = System.getProperty("user.dir")
-    var workingDir = "/home/vvasuki/stardict-sanskrit/"
+    var workingDir = "/home/vvasuki/indic-dict/stardict-marathi/ma-head/other-entries"
     System.setProperty("user.dir", workingDir)
 //    dumpWordToDictMap(basePaths=List(workingDir), outFilePath=s"${workingDir}wordlists/words_sa_dev.txt")
     // stripNonOptitransHeadwords(dictPattern, workingDir)
     // getDevanagariOptitransFromIast(dictPattern, workingDir)
 //    getDevanagariOptitransFromIastIfIndic(dictPattern, workingDir, getWordToDictsMapFromPaths(List("/home/vvasuki/stardict-pali/pali-head/").keys))
-     addOptitrans(dictPattern = "Me.*", baseDir = "/home/vvasuki/indic-dict/stardict-sanskrit/sa-head/en-entries")
+//    addOptitrans(dictPattern = "Me.*", baseDir = "/home/vvasuki/indic-dict/stardict-sanskrit/sa-head/en-entries")
+    makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-marathi/raw/gh-pages/ma-head/other-entries/tars", githubToken = None, overwrite = false)
     // makeStardict(dir, "/home/vvasuki/stardict/tools/src/babylon")
   }
 }

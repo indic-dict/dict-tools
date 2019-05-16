@@ -24,10 +24,12 @@ object tarProcessor extends BatchProcessor {
     destination.close()
   }
 
-  def makeTars(urlBase: String, dictPattern: String = ".*"): Unit = {
+  def getTimestampFromName(fileName: String): Option[String] = fileName.split(".")(0).split("__").toList.headOption
+  
+  def makeTars(urlBase: String, dictPattern: String = ".*", overwrite: Boolean = false): Unit = {
     log info "=======================makeTars"
     // Get timestamp.
-    var dictionaries = getMatchingDictionaries(dictPattern).filter(_.ifoFile.isDefined)
+    var dictionaries = getMatchingDictionaries(dictPattern).filter(!overwrite && _.ifoFile.isDefined)
     log info s"Got ${dictionaries.count(_.tarFile.isDefined)} tar files"
     log info s"Got ${dictionaries.count(x => x.ifoFile.isDefined && x.tarFile.isEmpty)}  dicts without tarFile files but with ifo file."
 
@@ -44,11 +46,11 @@ object tarProcessor extends BatchProcessor {
         writeTarsList(dictionaries.head.getTarDirFile.getCanonicalPath, urlBase)
       }
     }
-    var dictsToIgnore = dictionaries.filter(_.tarFileNewerThanIfo())
+    var dictsToIgnore = dictionaries.filter(!overwrite && _.tarFileNewerThanIfo())
     if (dictsToIgnore.nonEmpty) {
       log warn s"Ignoring these files, whose dict files seem updated: " + dictsToIgnore.mkString("\n")
     }
-    dictionaries = dictionaries.filterNot(_.tarFileNewerThanIfo())
+    dictionaries = dictionaries.filterNot(dictsToIgnore.contains(_))
 
 
     log info s"got ${dictionaries.length} dictionaries which need to be updated."

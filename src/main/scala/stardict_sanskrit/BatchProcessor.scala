@@ -2,7 +2,12 @@ package stardict_sanskrit
 
 import java.io.File
 
+import github4s.Github
+import github4s.GithubResponses.GHResult
+import github4s.free.domain.Commit
 import org.slf4j.{Logger, LoggerFactory}
+import scalaj.http.HttpResponse
+import stardict_sanskrit.babylonProcessor.log
 
 trait BatchProcessor {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
@@ -37,4 +42,3 @@ trait BatchProcessor {
   def getMatchingDictionaries(file_pattern: String = ".*", baseDir: String = "."): List[DictionaryFolder] = getMatchingDirectories(file_pattern, baseDir).map(new DictionaryFolder(_))
 
 }
-

@@ -64,9 +64,21 @@ class DictionaryFolder(val name: String) {
     val babFile = getFinalBabylonFile()
     ifoFile.isDefined && (ifoFile.get.lastModified > babFile.lastModified)
   }
+  
+
+  def tarFileMatchesSource(githubRepo: GithubRepo, sourceFile: File=babylonFile.get,  sourceFileBranch: Option[String]=None, tarFileBranch: Option[String]=None): Boolean = {
+    val babylonUpdateTimestamp = githubRepo.getGithubUpdateTime(filePath = babylonFile.get.getAbsolutePath, branch = sourceFileBranch)
+    if (babylonUpdateTimestamp.isDefined && tarFile.isDefined) {
+      val tarFileTimestamp = githubRepo.getTarFileNameTimestampFromGithub(dictionaryFolder = this)
+      log debug(s"babylon: ${babylonUpdateTimestamp.get}, tar: ${tarFileTimestamp.get}")
+      return babylonUpdateTimestamp == tarFileTimestamp
+    } else {
+      return false
+    }
+  }
 
   //noinspection AccessorLikeMethodIsEmptyParen
-  def getBabylonOrIfoTimestampString(): String = {
+  def getLocalBabylonOrIfoTimestampString(): String = {
     // Format: dhAtupATha-sa__2016-02-20_16-15-35.tar.gz
     val format = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
     if (getFinalBabylonFile != null) {
@@ -88,14 +100,14 @@ class DictionaryFolder(val name: String) {
     }
   }
 
-  def getExpectedTarFileName(sizeMbString: String = "unk"): String = s"${dirName}__${getBabylonOrIfoTimestampString}__${sizeMbString}MB.tar.gz"
+  def getExpectedTarFileName(sizeMbString: String = "unk", timestamp: Option[String]= None): String = s"${dirName}__${timestamp.getOrElse(getLocalBabylonOrIfoTimestampString)}__${sizeMbString}MB.tar.gz"
   def getTarDirFile = new File(dirFile.getParentFile.getCanonicalPath, "/tars")
 
   def tarFileMatchesBabylon(): Boolean = {
     tarFile.isDefined && tarFile.get.getName.matches(s".*/?${getExpectedTarFileName(sizeMbString = ".*")}")
   }
 
-  def makeTar(filePatternToTar: String) = {
+  def makeTar(filePatternToTar: String=tarProcessor.filePatternToTar, timestamp: Option[String] = None) = {
     if (tarFile.isDefined) {
       log info "Deleting " + tarFile.get.getAbsolutePath
       tarFile.get.delete()
@@ -109,7 +121,7 @@ class DictionaryFolder(val name: String) {
 
     // Add size hint.
     val sizeMbString = (targetTarFile.length()/(1024*1024)).toLong.toString
-    val fileWithSize = new File(getTarDirFile.getCanonicalPath, getExpectedTarFileName(sizeMbString = sizeMbString))
+    val fileWithSize = new File(getTarDirFile.getCanonicalPath, getExpectedTarFileName(sizeMbString = sizeMbString, timestamp=timestamp))
     val renameResult = targetTarFile.renameTo(fileWithSize)
     if (!renameResult) {
       log warn s"Renamed ${targetTarFile} to ${fileWithSize}: $renameResult"
