@@ -24,7 +24,7 @@ object tarProcessor extends BatchProcessor {
     destination.close()
   }
 
-  def getTimestampFromName(fileName: String): Option[String] = fileName.split(".")(0).split("__").toList.headOption
+  def getTimestampFromName(fileName: String): Option[String] = fileName.split("\\.")(0).split("__").toList.headOption
   
   def makeTars(urlBase: String, dictPattern: String = ".*", overwrite: Boolean = false): Unit = {
     log info "=======================makeTars"
