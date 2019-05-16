@@ -20,7 +20,7 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
   def getGitPath(filePath: String) = filePath.replaceFirst(s".+/${githubRepo}/", "")
 
   def getTarFileNameTimestampFromGithub(dictionaryFolder: DictionaryFolder): Option[String] = {
-    val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = dictionaryFolder.getTarDirFile.getAbsolutePath) + "/tars"), ref = tarFileBranch).exec[Future, HttpResponse[String]]()
+    val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = dictionaryFolder.getTarDirFile.getAbsolutePath)), ref = tarFileBranch).exec[Future, HttpResponse[String]]()
     val contentsResponse = Await.result(contentsResponseFuture, 20.seconds)
     contentsResponse match {
       case Right(GHResult(contents, status, headers)) =>

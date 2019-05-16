@@ -68,9 +68,9 @@ class DictionaryFolder(val name: String) {
 
   def tarFileMatchesSource(githubRepo: GithubRepo, sourceFile: File=babylonFile.get,  sourceFileBranch: Option[String]=None, tarFileBranch: Option[String]=None): Boolean = {
     val babylonUpdateTimestamp = githubRepo.getGithubUpdateTime(filePath = babylonFile.get.getAbsolutePath, branch = sourceFileBranch)
-    if (babylonUpdateTimestamp.isDefined && tarFile.isDefined) {
+    if (babylonUpdateTimestamp.isDefined) {
       val tarFileTimestamp = githubRepo.getTarFileNameTimestampFromGithub(dictionaryFolder = this)
-      log debug(s"babylon: ${babylonUpdateTimestamp.get}, tar: ${tarFileTimestamp.get}")
+      log debug(s"babylon: ${babylonUpdateTimestamp}, tar: ${tarFileTimestamp}")
       return babylonUpdateTimestamp == tarFileTimestamp
     } else {
       return false

@@ -29,7 +29,7 @@ object tarProcessor extends BatchProcessor {
   def makeTars(urlBase: String, dictPattern: String = ".*", overwrite: Boolean = false): Unit = {
     log info "=======================makeTars"
     // Get timestamp.
-    var dictionaries = getMatchingDictionaries(dictPattern).filter(!overwrite && _.ifoFile.isDefined)
+    var dictionaries = getMatchingDictionaries(dictPattern).filter(overwrite || _.ifoFile.isDefined)
     log info s"Got ${dictionaries.count(_.tarFile.isDefined)} tar files"
     log info s"Got ${dictionaries.count(x => x.ifoFile.isDefined && x.tarFile.isEmpty)}  dicts without tarFile files but with ifo file."
 
