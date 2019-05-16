@@ -144,9 +144,9 @@ object tarProcessor extends BatchProcessor {
   }
 
   def main(args: Array[String]): Unit = {
-    var workingDir = "/home/vvasuki/stardict-sanskrit/"
-    compressAllDicts(List(workingDir), workingDir + "all_dicts.tar.gz")
-    //    makeTars("https://github.com/sanskrit-coders/stardict-telugu/raw/master/en-head/tars", dir)
+    var workingDir = "/home/vvasuki/stardict-marathi/ma-head/other-entries/tars"
+//    compressAllDicts(List(workingDir), workingDir + "all_dicts.tar.gz")
+        makeTars("https://github.com/indic-dict/stardict-marathi/raw/gh-pages/ma-head/other-entries/tars")
     //    getStats
   }
 }

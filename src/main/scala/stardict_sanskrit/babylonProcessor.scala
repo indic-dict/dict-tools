@@ -184,7 +184,7 @@ object babylonProcessor extends BatchProcessor{
     * @param tarBaseUrl - example value https://github.com/indic-dict/stardict-marathi/raw/gh-pages/ma-head/other-entries/tars
     * @param githubToken
     */
-  def makeIndicStardictTar(dictPattern: String = ".*", babylonBinary: String, tarBaseUrl: String, githubToken: Option[String], overwrite: Boolean = false) = {
+  def makeIndicStardictTar(dictPattern: String = ".*", babylonBinary: String, tarBaseUrl: String, githubToken: Option[String]=None, overwrite: Boolean = false) = {
     var dictionaries = getMatchingDictionaries(dictPattern)
     val githubRepo=GithubRepo.fromUrl(url=tarBaseUrl, githubToken=githubToken)
     log info "=======================Full build from babylon to stardict tar."

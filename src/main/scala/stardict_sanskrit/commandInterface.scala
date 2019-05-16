@@ -36,6 +36,22 @@ object commandInterface {
           opt[Boolean]("overwrite")
             .action((x, c) => c.copy(overwrite = Some(x))),
         )
+      cmd("makeIndicStardictTar")
+        .action((_, c) => c.copy(mode = Some("makeIndicStardictTar")))
+        .text("makeTars.")
+        .children(
+          opt[String]("urlBase")
+            .action((x, c) => c.copy(urlBase = Some(x)))
+            .required(),
+          opt[String]("dictPattern")
+            .action((x, c) => c.copy(dictPattern = Some(x)))
+            .required(),
+          opt[String]("babylonBinary")
+            .action((x, c) => c.copy(babylonBinary = Some(x)))
+            .required(),
+          opt[Boolean]("overwrite")
+            .action((x, c) => c.copy(overwrite = Some(x))),
+        )
       cmd("addStandardHeadwords")
         .action((_, c) => c.copy(mode = Some("addStandardHeadwords")))
         .text("Add optitrans and devanAgarI headwords to babylon dictionaries.")
@@ -109,6 +125,7 @@ object commandInterface {
           case "compressAllDicts" => tarProcessor.compressAllDicts(basePaths = commandConfig.inputPaths.get.split(","), tarFilePath =  commandConfig.destinationPath.get)
           case "makeStardict" => babylonProcessor.makeStardict(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false))
           case "writeTarsList" => tarProcessor.writeTarsList(tarDestination =  commandConfig.destinationPath.get, urlBase =  commandConfig.urlBase.get)
+          case "makeIndicStardictTar" => babylonProcessor.makeIndicStardictTar(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false), tarBaseUrl =  commandConfig.urlBase.get)
           case unknownCommand => log.error(s"Do not recognize $unknownCommand")
         }
       }
