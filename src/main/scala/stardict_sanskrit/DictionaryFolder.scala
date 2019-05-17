@@ -51,6 +51,7 @@ class DictionaryFolder(val name: String) {
 
   //noinspection AccessorLikeMethodIsEmptyParen
   def getFinalBabylonFile(): File = {
+    babylonFinalFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.babylon_final"))
     if (babylonFinalFile.isDefined) {
       babylonFinalFile.get
     } else if (babylonFile.isDefined) {
