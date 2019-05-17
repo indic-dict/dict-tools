@@ -49,6 +49,8 @@ object commandInterface {
           opt[String]("babylonBinary")
             .action((x, c) => c.copy(babylonBinary = Some(x)))
             .required(),
+          opt[String]("githubToken")
+            .action((x, c) => c.copy(githubToken = if (x != "NONE") Some(x) else None)),
           opt[Boolean]("overwrite")
             .action((x, c) => c.copy(overwrite = Some(x))),
         )
@@ -125,7 +127,7 @@ object commandInterface {
           case "compressAllDicts" => tarProcessor.compressAllDicts(basePaths = commandConfig.inputPaths.get.split(","), tarFilePath =  commandConfig.destinationPath.get)
           case "makeStardict" => babylonProcessor.makeStardict(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false))
           case "writeTarsList" => tarProcessor.writeTarsList(tarDestination =  commandConfig.destinationPath.get, urlBase =  commandConfig.urlBase.get)
-          case "makeIndicStardictTar" => babylonProcessor.makeIndicStardictTar(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false), tarBaseUrl =  commandConfig.urlBase.get)
+          case "makeIndicStardictTar" => babylonProcessor.makeIndicStardictTar(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false), tarBaseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken)
           case unknownCommand => log.error(s"Do not recognize $unknownCommand")
         }
       }
