@@ -195,7 +195,6 @@ object babylonProcessor extends BatchProcessor{
           addOptitrans(dictPattern = dictionary.dirName, overwrite = overwrite)
           dictionary.makeStardictFromBabylonFile(babylonBinary)
           dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath))
-          tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
         } else {
           log info(s"Tar file for ${dictionary.name} is newer. Not overwriting.")
         }
@@ -210,7 +209,9 @@ object babylonProcessor extends BatchProcessor{
           log.info(s"**** No babylon or ifo file in ${dictionary.dirName} - skipping.")
         }
       }
+      tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
     })
+    
   }
 
   

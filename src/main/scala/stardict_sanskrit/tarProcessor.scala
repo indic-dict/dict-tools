@@ -14,6 +14,7 @@ object tarProcessor extends BatchProcessor {
   val filePatternToTar = ".*\\.ifo|.*\\.idx|.*\\.dz|.*\\.ifo|.*\\.syn|.*LICENSE.*"
 
   def writeTarsList(tarDestination: String, urlBase: String): Unit = {
+    log.info(s"Updating tar list at ${urlBase}")
     val outFileObj = new File(tarDestination + "/tars.MD")
     outFileObj.getParentFile.mkdirs
     val destination = new PrintWriter(outFileObj)
