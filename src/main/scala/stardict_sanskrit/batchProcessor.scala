@@ -26,6 +26,7 @@ object batchProcessor extends BatchProcessor {
           tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
         } else {
           log info(s"Tar file for ${dictionary.name} is not outdated. Not overwriting.")
+          githubRepo.downloadTarFile(dictionary)
         }
       } else {
         log.info(s"**** No babylon file in ${dictionary.dirName} - skipping.")
@@ -36,6 +37,7 @@ object batchProcessor extends BatchProcessor {
             tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
           } else {
             log info(s"Tar file for ${dictionary.name} is not outdated. Not overwriting.")
+            githubRepo.downloadTarFile(dictionary)
           }
         } else {
           log.info(s"**** No babylon or ifo file in ${dictionary.dirName} - skipping.")

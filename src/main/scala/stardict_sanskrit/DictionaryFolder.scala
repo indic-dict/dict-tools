@@ -109,10 +109,10 @@ class DictionaryFolder(val name: String) {
   }
 
   def makeTar(filePatternToTar: String=tarProcessor.filePatternToTar, timestamp: Option[String] = None) = {
-    if (tarFile.isDefined) {
-      log info "Deleting " + tarFile.get.getAbsolutePath
+    getTarDirFile.listFiles.map(_.getCanonicalFile).filter(_.getName.matches(s".*/?${dirName}.*.tar.gz")).foreach(x => {
+      log info "Deleting " + x.getAbsolutePath
       tarFile.get.delete()
-    }
+    })
     val targetTarFile = new File(getTarDirFile.getCanonicalPath, getExpectedTarFileName())
     targetTarFile.getParentFile.mkdirs
     val filesToCompress = dirFile.listFiles.map(_.getCanonicalPath).filter(x => x.matches(filePatternToTar))
