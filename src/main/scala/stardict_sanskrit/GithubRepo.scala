@@ -1,9 +1,13 @@
 package stardict_sanskrit
 
+import java.io.File
+import java.net.URL
+
+import cats.data.NonEmptyList
 import github4s.Github
 import github4s.Github._
-import github4s.GithubResponses.GHResult
-import github4s.free.domain.Commit
+import github4s.GithubResponses.{GHResponse, GHResult}
+import github4s.free.domain.{Commit, Content}
 import github4s.jvm.Implicits._
 import org.slf4j.{Logger, LoggerFactory}
 import scalaj.http.HttpResponse
@@ -19,10 +23,13 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
   
   def getGitPath(filePath: String) = filePath.replaceFirst(s".+/${githubRepo}/", "")
 
+  def getTarContents(tarDirFilePath: String): GHResponse[NonEmptyList[Content]] = {
+    val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = tarDirFilePath)), ref = tarFileBranch).exec[Future, HttpResponse[String]]()
+    return Await.result(contentsResponseFuture, 20.seconds)
+  }
+  
   def getTarFileNameTimestampFromGithub(dictionaryFolder: DictionaryFolder): Option[String] = {
-    val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = dictionaryFolder.getTarDirFile.getAbsolutePath)), ref = tarFileBranch).exec[Future, HttpResponse[String]]()
-    val contentsResponse = Await.result(contentsResponseFuture, 20.seconds)
-    contentsResponse match {
+    getTarContents(dictionaryFolder.getTarDirFile.getAbsolutePath) match {
       case Right(GHResult(contents, status, headers)) =>
         // Assuming that the first commit is the latest. TODO: Do something more robust.
         val tarContent = contents.filter(_.name.startsWith(dictionaryFolder.name))
@@ -36,6 +43,34 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
     }
   }
 
+  def getTarContentList(tarDirFilePath: String): List[Content] = {
+    getTarContents(tarDirFilePath) match {
+      case Right(GHResult(contents, status, headers)) =>
+        // Assuming that the first commit is the latest. TODO: Do something more robust.
+        val tarContent = contents.filter(_.name.endsWith("tar.gz"))
+        return tarContent
+      case Left(e) => log error e.getMessage
+        return List()
+    }
+  }
+  
+  def downloadTarFile(dictionaryFolder: DictionaryFolder): Unit = {
+    getTarContents(dictionaryFolder.getTarDirFile.getAbsolutePath) match {
+      case Right(GHResult(contents, status, headers)) =>
+        // Assuming that the first commit is the latest. TODO: Do something more robust.
+        val tarContent = contents.filter(_.name.startsWith(dictionaryFolder.name))
+        if (tarContent.headOption.isEmpty) {
+          log error s"Did not find tar file for ${dictionaryFolder.name}!"
+        } else {
+          import sys.process._
+          val destPath = new File(dictionaryFolder.getTarDirFile, tarContent.head.name)
+          log info s"Downloading ${tarContent.head.download_url.get} to ${destPath}"
+          new URL(tarContent.head.download_url.get) #> destPath !!
+        }
+      case Left(e) => log error e.getMessage
+    }
+  }
+  
   def getGithubUpdateTime(filePath: String, branch:Option[String]=None): Option[String] = {
     val relativePath = filePath.replaceFirst(s".+${githubRepo}/", "")
     val commitsResponseFuture = githubClient.repos.listCommits(owner = githubOrg, repo = githubRepo, path=Some(relativePath), sha=branch).exec[Future, HttpResponse[String]]()

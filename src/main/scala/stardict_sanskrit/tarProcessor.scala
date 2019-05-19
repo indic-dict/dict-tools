@@ -13,20 +13,29 @@ object tarProcessor extends BatchProcessor {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   val filePatternToTar = ".*\\.ifo|.*\\.idx|.*\\.dz|.*\\.ifo|.*\\.syn|.*LICENSE.*"
 
-  def writeTarsList(tarDestination: String, urlBase: String): Unit = {
+  def writeTarsList(tarDestination: String, urlBase: String, githubRepoOpt: Option[GithubRepo] = None): Unit = {
     log.info(s"======================= Updating tar list at ${urlBase}")
     val outFileObj = new File(tarDestination + "/tars.MD")
     outFileObj.getParentFile.mkdirs
     val destination = new PrintWriter(outFileObj)
     val urlBaseFinal = urlBase.replaceAll("/$", "")
-    outFileObj.getParentFile.listFiles().map(_.getCanonicalFile).filter(_.getName.endsWith("tar.gz")).toList.sorted.foreach(x => {
-      destination.println(s"${urlBaseFinal}/${x.getName.replaceAll(".*/", "")}")
+    val localArchives = outFileObj.getParentFile.listFiles().map(_.getCanonicalFile).filter(_.getName.endsWith("tar.gz"))
+    val localDictionaryNames = localArchives.map(x=>getDictIdFromName(x.getName))
+    var uploadedArchives = List[String]()
+    if (githubRepoOpt.isDefined) {
+      uploadedArchives = githubRepoOpt.get.getTarContentList(tarDirFilePath=outFileObj.getParentFile.getAbsolutePath).filter(x => !localDictionaryNames.contains(getDictIdFromName(x.name))).map(_.download_url.get)
+    }
+    val localArchiveUrls = localArchives.map(x => s"${urlBaseFinal}/${x.getName.replaceAll(".*/", "")}")
+    ( localArchiveUrls.toList ::: uploadedArchives).sorted.foreach(x => {
+      destination.println(x)
     })
     destination.close()
   }
 
-  def getTimestampFromName(fileName: String): Option[String] = fileName.split("\\.")(0).split("__").toList.tail.headOption
-  
+  def getTimestampFromName(fileName: String): Option[String] = fileName.split("/").last.split("\\.")(0).split("__").toList.tail.headOption
+
+  def getDictIdFromName(fileName: String): String = fileName.split("/").last.split("\\.")(0).split("__")(0)
+
   def makeTars(urlBase: String, dictPattern: String = ".*", overwrite: Boolean = false): Unit = {
     log info "=======================makeTars"
     // Get timestamp.

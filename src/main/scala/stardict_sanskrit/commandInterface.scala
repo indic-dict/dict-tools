@@ -127,7 +127,7 @@ object commandInterface {
           case "compressAllDicts" => tarProcessor.compressAllDicts(basePaths = commandConfig.inputPaths.get.split(","), tarFilePath =  commandConfig.destinationPath.get)
           case "makeStardict" => babylonProcessor.makeStardict(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false))
           case "writeTarsList" => tarProcessor.writeTarsList(tarDestination =  commandConfig.destinationPath.get, urlBase =  commandConfig.urlBase.get)
-          case "makeIndicStardictTar" => babylonProcessor.makeIndicStardictTar(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false), tarBaseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken)
+          case "makeIndicStardictTar" => batchProcessor.makeIndicStardictTar(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false), tarBaseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken)
           case unknownCommand => log.error(s"Do not recognize $unknownCommand")
         }
       }
