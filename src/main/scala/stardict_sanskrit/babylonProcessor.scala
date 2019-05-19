@@ -187,7 +187,7 @@ object babylonProcessor extends BatchProcessor{
   def makeIndicStardictTar(dictPattern: String = ".*", babylonBinary: String, tarBaseUrl: String, githubToken: Option[String]=None, overwrite: Boolean = false) = {
     var dictionaries = getMatchingDictionaries(dictPattern)
     val githubRepo=GithubRepo.fromUrl(url=tarBaseUrl, githubToken=githubToken)
-    log info "=======================Full build from babylon to stardict tar."
+    log info "=======================Full build from source to stardict tar."
     dictionaries.foreach(dictionary => {
       if (dictionary.babylonFile.isDefined) {
         val tarFileMatchesBabylon = dictionary.tarFileMatchesSource(githubRepo=githubRepo)
@@ -196,7 +196,7 @@ object babylonProcessor extends BatchProcessor{
           dictionary.makeStardictFromBabylonFile(babylonBinary)
           dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath))
         } else {
-          log info(s"Tar file for ${dictionary.name} is newer. Not overwriting.")
+          log info(s"Tar file for ${dictionary.name} is not outdated. Not overwriting.")
         }
       } else {
         log.info(s"**** No babylon file in ${dictionary.dirName} - skipping.")
@@ -204,6 +204,8 @@ object babylonProcessor extends BatchProcessor{
           val tarFileMatchesIfo = dictionary.tarFileMatchesSource(sourceFile = dictionary.ifoFile.get, githubRepo=githubRepo)
           if (!tarFileMatchesIfo || overwrite) {
             dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.ifoFile.get.getAbsolutePath))
+          } else {
+            log info(s"Tar file for ${dictionary.name} is not outdated. Not overwriting.")
           }
         } else {
           log.info(s"**** No babylon or ifo file in ${dictionary.dirName} - skipping.")
