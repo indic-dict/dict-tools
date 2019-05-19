@@ -13,7 +13,7 @@ object batchProcessor extends BatchProcessor {
     * @param githubToken
     */
   def makeIndicStardictTar(dictPattern: String = ".*", babylonBinary: String, tarBaseUrl: String, githubToken: Option[String]=None, overwrite: Boolean = false, baseDir: String = ".") = {
-    var dictionaries = this.getMatchingDictionaries(dictPattern)
+    var dictionaries = this.getMatchingDictionaries(dictPattern, baseDir = baseDir)
     val githubRepo=GithubRepo.fromUrl(url=tarBaseUrl, githubToken=githubToken)
     log info "=======================Full build from source to stardict tar."
     dictionaries.foreach(dictionary => {
@@ -49,8 +49,8 @@ object batchProcessor extends BatchProcessor {
 
   def main(args: Array[String]): Unit = {
     val dictPattern = ".*"
-    var workingDir = "/home/vvasuki/indic-dict/stardict-pali/pali-en-head"
-    makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-pali/raw/gh-pages/pali-en-head/tars", githubToken = None, overwrite = false, baseDir = workingDir)
+    var workingDir = "/home/vvasuki/indic-dict//stardict-sinhala/si-head/en-entries"
+    makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = false, baseDir = workingDir)
     
   }
 }
