@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# This is invoked from travis.yml scripts to autobuild dict packages for distribution.
+
 # STARDICT_SANSKRIT_SCALA=`dirname $0`
 PATH_TO_JARS=~/dict-tools
 BABYLON_BINARY=${BABYLON_BINARY:-/usr/lib/stardict-tools/babylon}
