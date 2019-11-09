@@ -2,11 +2,7 @@ package stardict_sanskrit
 
 import java.io.File
 
-import github4s.Github
-import github4s.GithubResponses.GHResult
-import github4s.free.domain.Commit
 import org.slf4j.{Logger, LoggerFactory}
-import scalaj.http.HttpResponse
 
 trait BatchProcessor {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
