@@ -8,7 +8,7 @@ import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Status}
 import akka.http.scaladsl.Http
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, IOResult}
 import org.slf4j.{Logger, LoggerFactory}
-import sanskrit_coders.{RichHttpClient, Utils}
+import sanskrit_coders.{RichHttpAkkaClient, Utils}
 import akka.http.scaladsl.model._
 import akka.util.Timeout
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport.ShouldWritePretty.False
@@ -50,7 +50,7 @@ class InstallerActor extends Actor with ActorLogging {
   final implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(context.system))
 
   private val simpleClient: HttpRequest => Future[HttpResponse] = Http(context.system).singleRequest(_: HttpRequest)
-  private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpClient.httpClientWithRedirect(simpleClient)
+  private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpAkkaClient.httpClientWithRedirect(simpleClient)
 
   def receive: PartialFunction[Any, Unit] = {
     case (dict: DictInfo, overwrite: Boolean) => {
@@ -78,7 +78,7 @@ object installer {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   val system = ActorSystem("installerActorSystem")
 
-  def fileDownloader(url: String, filename: String) = {
+  def fileDownloader(url: String, filename: String): String = {
     new URL(url) #> new File(filename) !!
   }
 

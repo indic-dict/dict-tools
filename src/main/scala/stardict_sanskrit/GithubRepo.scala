@@ -10,11 +10,13 @@ import github4s.GithubResponses.{GHResponse, GHResult}
 import github4s.free.domain.{Commit, Content}
 import github4s.jvm.Implicits._
 import org.slf4j.{Logger, LoggerFactory}
+import sanskrit_coders.RichHttpAkkaClient
 import scalaj.http.HttpResponse
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+
 
 class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken: Option[String] = None, tarFileBranch: Option[String]=None) {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
@@ -65,7 +67,8 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
           import sys.process._
           val destPath = new File(dictionaryFolder.getTarDirFile, tarContent.head.name)
           log info s"Downloading ${tarContent.head.download_url.get} to ${destPath}"
-          new URL(tarContent.head.download_url.get) #> destPath !!
+          Await.ready(RichHttpAkkaClient.dumpToFile(tarContent.head.download_url.get, destPath.toString), Duration(3, MINUTES))
+//          new URL(tarContent.head.download_url.get) #> destPath !!
         }
       case Left(e) => log error e.getMessage
     }

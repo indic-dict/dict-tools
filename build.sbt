@@ -1,6 +1,6 @@
 name := "dict-tools"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.8"
 
 // The library versions should be as mutually compatible as possible - else there will be weird runtime errors.
 // We just use whatever we found compatible with akka-http-core in scala-utils_2.12
@@ -17,11 +17,11 @@ libraryDependencies ++= Seq(
   ,"org.json4s" % "json4s-ast_2.12" % "3.6.1"
   ,"org.json4s" % "json4s-native_2.12" % "3.6.1"
   ,"com.typesafe.akka" %% "akka-actor" % akkaVersion  // We use Akka Actor model for concurrent processing.
-  ,"org.apache.commons" % "commons-csv" % "1.5"
+  ,"org.apache.commons" % "commons-csv" % "1.6"
   ,"org.apache.commons" % "commons-compress" % "1.18"
   , "com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.31"
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
-  , "com.github.sanskrit-coders" % "scala-utils_2.12" % "1.4"
+  , "com.github.sanskrit-coders" % "scala-utils_2.12" % "1.6"
   ,  "com.47deg" %% "github4s" % "0.20.1"
   , "com.github.scopt" % "scopt_2.12" % "4.0.0-RC2"
 ).map(_.exclude("org.slf4j", "*"))
