@@ -117,6 +117,7 @@ object commandInterface {
             .action((x, c) => c.copy(overwrite = Some(x))),
         )
     }
+    log.info(args.mkString(" "))
     parser.parse(args, CommandConfig()) match {
       case Some(commandConfig) => {
         log.debug(commandConfig.toString)
@@ -134,6 +135,6 @@ object commandInterface {
       case None =>
         log.error("Failed to parse args")
     }
-    log.info(args.mkString(" "))
+    log.info("Done with : " + args.mkString(" "))
   }
 }
