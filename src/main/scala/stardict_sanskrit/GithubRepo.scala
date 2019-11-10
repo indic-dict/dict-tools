@@ -3,6 +3,7 @@ package stardict_sanskrit
 import java.io.File
 import java.net.URL
 
+import akka.actor.ActorSystem
 import cats.data.NonEmptyList
 import github4s.Github
 import github4s.Github._
@@ -67,7 +68,10 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
           import sys.process._
           val destPath = new File(dictionaryFolder.getTarDirFile, tarContent.head.name)
           log info s"Downloading ${tarContent.head.download_url.get} to ${destPath}"
+          implicit val actorSystem = ActorSystem("HttpAkka")
           Await.ready(RichHttpAkkaClient.dumpToFile(tarContent.head.download_url.get, destPath.toString), Duration(3, MINUTES))
+          actorSystem.terminate()
+          
 //          new URL(tarContent.head.download_url.get) #> destPath !!
         }
       case Left(e) => log error e.getMessage
