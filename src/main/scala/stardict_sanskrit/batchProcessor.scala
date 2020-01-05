@@ -34,11 +34,12 @@ object batchProcessor extends BatchProcessor {
           val tarFileMatchesIfo = dictionary.tarFileMatchesSource(sourceFile = dictionary.ifoFile.get, githubRepo=githubRepo)
           if (!tarFileMatchesIfo || overwrite) {
             dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.ifoFile.get.getAbsolutePath))
-            tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
           } else {
             log info(s"Tar file for ${dictionary.name} is not outdated. Not overwriting.")
             githubRepo.downloadTarFile(dictionary)
           }
+          // Tarlist may be out of sync and is anyway non-binary (so git git will not be updated in case same content is generated), so will overwrite anyway.
+          tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
         } else {
           log.info(s"**** No babylon or ifo file in ${dictionary.dirName} - skipping.")
         }

@@ -50,7 +50,7 @@ class InstallerActor extends Actor with ActorLogging {
   final implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(context.system))
 
   private val simpleClient: HttpRequest => Future[HttpResponse] = Http(context.system).singleRequest(_: HttpRequest)
-  private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpAkkaClient.httpClientWithRedirect(simpleClient)
+  private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpAkkaClient.httpClientWithRedirect(simpleClient)(context.system)
 
   def receive: PartialFunction[Any, Unit] = {
     case (dict: DictInfo, overwrite: Boolean) => {
