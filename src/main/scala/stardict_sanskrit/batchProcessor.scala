@@ -27,6 +27,8 @@ object batchProcessor extends BatchProcessor {
         } else {
           log info(s"Tar file for ${dictionary.name} is not outdated. Not overwriting.")
           githubRepo.downloadTarFile(dictionary)
+          // Tarlist may be out of sync and is anyway non-binary (so git git will not be updated in case same content is generated), so will overwrite anyway.
+          tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
         }
       } else {
         log.info(s"**** No babylon file in ${dictionary.dirName} - skipping.")

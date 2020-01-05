@@ -70,6 +70,7 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
           log info s"Downloading ${tarContent.head.download_url.get} to ${destPath}"
           implicit val actorSystem = ActorSystem("HttpAkka")
           Await.ready(RichHttpAkkaClient.dumpToFile(tarContent.head.download_url.get, destPath.toString), Duration(3, MINUTES))
+          log info s"Downloaded ${tarContent.head.download_url.get} to ${destPath}. Now terminating actor system."
           actorSystem.terminate()
           
 //          new URL(tarContent.head.download_url.get) #> destPath !!
