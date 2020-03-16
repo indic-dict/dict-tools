@@ -64,11 +64,16 @@ class InstallerActor extends Actor with ActorLogging {
       } else {
         // Download the file.
         new java.io.File(destinationTarPath.getParent.toString).mkdirs()
-        installer.fileDownloader(dict.dictTarUrl, destinationTarPath.toString)
-        tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
-        new java.io.File(destinationTarPath.toString).delete()
-        val extractionResult = Success(s"Done with $dict")
-        Future.fromTry(extractionResult).pipeTo(sender())
+        val downloadAndExtractFuture = RichHttpAkkaClient.dumpToFile(dict.dictTarUrl, destinationTarPath.toString)(context.system).map(result => {
+          if (result.wasSuccessful) {
+            tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
+            new java.io.File(destinationTarPath.toString).delete()
+            Success(s"Done with $dict")
+          } else {
+            throw result.getError
+          }
+        })
+        downloadAndExtractFuture.pipeTo(sender())
       }
     }
   }
@@ -77,10 +82,6 @@ class InstallerActor extends Actor with ActorLogging {
 object installer {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   val system = ActorSystem("installerActorSystem")
-
-  def fileDownloader(url: String, filename: String): String = {
-    new URL(url) #> new File(filename) !!
-  }
 
   def install(destination: String, indexOfIndicesUrl: String, overwrite:Boolean=false): Unit = {
     val indices = DictIndex.getUrlsFromIndexMd(indexOfIndicesUrl)
