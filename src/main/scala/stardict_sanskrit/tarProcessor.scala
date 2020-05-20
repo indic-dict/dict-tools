@@ -105,6 +105,7 @@ object tarProcessor extends BatchProcessor {
   }
 
   def extractFile(archiveFileName: String, destinationPath: String): Unit = {
+    log.info(s"Extracting ${archiveFileName}")
     import org.apache.commons.compress.archivers.ArchiveInputStream
     var archiveInputStream = inputStreamFromArchive(archiveFileName)
     import org.apache.commons.compress.archivers.ArchiveEntry
