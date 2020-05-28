@@ -66,7 +66,7 @@ class InstallerActor extends Actor with ActorLogging {
       val dictionaryFolder = new java.io.File(destinationTarPath.getParent.toString)
       val doesDictExist = dictionaryFolder.exists() && dictionaryFolder.listFiles().length > 3 && dictionaryFolder.listFiles().find(_.getName.endsWith("ifo")) != None
       val localDictFileNewer = doesDictExist && dictionaryFolder.listFiles().filter(_.getName.endsWith("ifo")).head.lastModified() > dict.timestamp
-      if (!overwrite && !localDictFileNewer) {
+      if (!overwrite && localDictFileNewer) {
         log.warning(s"Skipping pre-existing seemingly newer $dict")
         Future.fromTry(Success(s"Dict already exists: $dict")).pipeTo(sender())
       } else {
