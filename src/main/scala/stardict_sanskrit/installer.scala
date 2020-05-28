@@ -34,6 +34,7 @@ case class DictInfo(dictTarUrl: String, destinationFolder: String, var dictName:
     val format = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
     timestamp = format.parse(timestampStr).getTime()
   }
+
 }
 
 
@@ -50,6 +51,14 @@ object DictIndex {
   def getUrlsFromIndexMd(url: String): Array[String] = {
     import scala.io.Source
     Source.fromURL(url).mkString.split("\n").map(_.replaceAll("[<>]", ""))
+  }
+  def recursiveListFiles(f: File): Array[File] = {
+    if(f.exists()) {
+      val these = f.listFiles
+      these ++ these.filter(_.isDirectory).flatMap(recursiveListFiles)
+    } else {
+      Array[File]()
+    }
   }
 }
 
@@ -68,8 +77,10 @@ class InstallerActor extends Actor with ActorLogging {
       log.info(dict.toString)
       val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
       val dictionaryFolder = new java.io.File(destinationTarPath.getParent.toString)
-      val doesDictExist = dictionaryFolder.exists() && dictionaryFolder.listFiles().length >= 3 && dictionaryFolder.listFiles().find(_.getName.endsWith("ifo")) != None
-      val localDictFileNewer = doesDictExist && (dictionaryFolder.listFiles().filter(_.getName.endsWith("ifo")).head.lastModified() > dict.timestamp || dict.timestamp == 0)
+      val dictFilesLocal = DictIndex.recursiveListFiles(dictionaryFolder)
+      val dictIfo = DictIndex.recursiveListFiles(dictionaryFolder).find(_.getName.endsWith("ifo"))
+      val doesDictExist = dictionaryFolder.exists() && dictFilesLocal.length >= 3 && dictIfo != None
+      val localDictFileNewer = doesDictExist && (dict.timestamp == 0 || dictIfo.head.lastModified() > dict.timestamp)
       if (!overwrite && (localDictFileNewer)) {
         log.warning(s"Skipping pre-existing seemingly newer $dict")
         Future.fromTry(Success(s"Dict already exists: $dict")).pipeTo(sender())
