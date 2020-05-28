@@ -23,7 +23,11 @@ import scala.util.{Failure, Success}
 case class DictInfo(dictTarUrl: String, destinationFolder: String, var dictName: String = null, var tarFilename : String = null, var timestamp: Long = 0) {
   tarFilename = dictTarUrl.split("/").last
   val tarFilenameParts = tarFilename.split("__")
-  dictName = tarFilenameParts.head
+  if(tarFilenameParts.length == 1) {
+    dictName = tarFilename.split("\\.").head
+  } else {
+    dictName = tarFilenameParts.head
+  }
   if (tarFilenameParts.length > 1) {
     // example: 2020-05-20_15-13-48Z
     val timestampStr = tarFilenameParts(1).replace("Z", "")
