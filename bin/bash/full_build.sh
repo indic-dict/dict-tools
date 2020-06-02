@@ -7,7 +7,7 @@ PATH_TO_JARS=~/dict-tools
 BABYLON_BINARY=${BABYLON_BINARY:-/usr/lib/stardict-tools/babylon}
 
 if [ -f "$BABYLON_BINARY" ] 
-  then echo "$BABYLON_BINARY exist" 
+  then echo "$BABYLON_BINARY exists." 
 elif [ -f "/usr/bin/stardict-babylon" ]
   then BABYLON_BINARY=/usr/bin/stardict-babylon
 fi
