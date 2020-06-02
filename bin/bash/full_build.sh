@@ -5,6 +5,13 @@
 # STARDICT_SANSKRIT_SCALA=`dirname $0`
 PATH_TO_JARS=~/dict-tools
 BABYLON_BINARY=${BABYLON_BINARY:-/usr/lib/stardict-tools/babylon}
+
+if [ -f "$BABYLON_BINARY" ] 
+  then echo "$BABYLON_BINARY exist" 
+elif [ -f "/usr/bin/stardict-babylon" ]
+  then BABYLON_BINARY=/usr/bin/stardict-babylon
+fi
+
 GITHUB_TOKEN=${GITHUB_TOKEN:-NONE}
 java -cp "$PATH_TO_JARS/bin/artifacts/dict-tools.jar" stardict_sanskrit.commandInterface makeIndicStardictTar  --urlBase=$1 --${2/DICTS=/dictPattern=}  --babylonBinary=$BABYLON_BINARY --githubToken=$GITHUB_TOKEN
 
