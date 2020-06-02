@@ -99,6 +99,9 @@ class DictionaryFolder(val name: String) {
     if (dictFile.nonEmpty) {
       s"dictzip ${dictFile.get.getCanonicalPath}".!
     }
+    if (babFile.getName.endsWith("final_babylon") && babFile.length() > 99000000) {
+      log info (s"Deleted large final babylon file of size ${babFile.length()} with result ${babFile.delete()}")
+    }
   }
 
   def getExpectedTarFileName(sizeMbString: String = "unk", timestamp: Option[String]= None): String = s"${dirName}__${timestamp.getOrElse(getLocalBabylonOrIfoTimestampString)}__${sizeMbString}MB.tar.gz"

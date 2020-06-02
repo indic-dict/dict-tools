@@ -137,7 +137,7 @@ object babylonProcessor extends BatchProcessor{
     
     fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=toDevanAgarIAndOptitrans)
   }
-
+  
   /**
     * Makes stardict files from babylon files.
     * 

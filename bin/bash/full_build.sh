@@ -14,4 +14,3 @@ fi
 
 GITHUB_TOKEN=${GITHUB_TOKEN:-NONE}
 java -cp "$PATH_TO_JARS/bin/artifacts/dict-tools.jar" stardict_sanskrit.commandInterface makeIndicStardictTar  --urlBase=$1 --${2/DICTS=/dictPattern=}  --babylonBinary=$BABYLON_BINARY --githubToken=$GITHUB_TOKEN
-
