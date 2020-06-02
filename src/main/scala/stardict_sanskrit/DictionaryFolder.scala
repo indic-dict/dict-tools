@@ -4,6 +4,7 @@ import java.io.File
 
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.Utils
+import stardict_sanskrit.babylonProcessor.log
 
 import scala.sys.process._
 
@@ -99,10 +100,18 @@ class DictionaryFolder(val name: String) {
     if (dictFile.nonEmpty) {
       s"dictzip ${dictFile.get.getCanonicalPath}".!
     }
+  }
+
+
+  def delete_large_intermediate_files(): Unit = {
+    val babFile = getFinalBabylonFile
     if (babFile.getName.endsWith("final_babylon") && babFile.length() > 99000000) {
-      log info (s"Deleted large final babylon file of size ${babFile.length()} with result ${babFile.delete()}")
+      log warn (s"Deleted large final babylon file of size ${babFile.length()} with result ${babFile.delete()}")
+    } else {
+      log info (s"Keeping final babylon file of size ${babFile.length()}")
     }
   }
+
 
   def getExpectedTarFileName(sizeMbString: String = "unk", timestamp: Option[String]= None): String = s"${dirName}__${timestamp.getOrElse(getLocalBabylonOrIfoTimestampString)}__${sizeMbString}MB.tar.gz"
   def getTarDirFile = new File(dirFile.getParentFile.getCanonicalPath, "/tars")

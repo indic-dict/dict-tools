@@ -24,6 +24,7 @@ object batchProcessor extends BatchProcessor {
           dictionary.makeStardictFromBabylonFile(babylonBinary)
           dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath))
           tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
+          dictionary.delete_large_intermediate_files()
         } else {
           log info(s"Tar file for ${dictionary.name} is not outdated. Not overwriting.")
           githubRepo.downloadTarFile(dictionary)

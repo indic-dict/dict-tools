@@ -155,7 +155,7 @@ object babylonProcessor extends BatchProcessor{
     dictionaries = dictionaries.filterNot(dictsToIgnore.contains(_))
     dictionaries.foreach(_.makeStardictFromBabylonFile(babylonBinary))
   }
-
+  
   /**
     * Transliterates all words (mentioned to wordListFilePath) in sourceScheme to devanAgarI.
     * 
