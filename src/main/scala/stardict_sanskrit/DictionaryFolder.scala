@@ -106,9 +106,9 @@ class DictionaryFolder(val name: String) {
   def delete_large_intermediate_files(): Unit = {
     val babFile = getFinalBabylonFile
     if (babFile.getName.endsWith("final_babylon") && babFile.length() > 99000000) {
-      log warn (s"Deleted large final babylon file of size ${babFile.length()} with result ${babFile.delete()}")
+      log warn (s"Deleted large final babylon file $babFile of size ${babFile.length()} with result ${babFile.delete()}")
     } else {
-      log info (s"Keeping final babylon file of size ${babFile.length()}")
+      log info (s"Keeping final babylon file $babFile of size ${babFile.length()}")
     }
   }
 
