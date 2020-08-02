@@ -15,7 +15,7 @@ import scala.io.Source
 /**
   * Processes babylon files in various ways. For example - adds devanagari or opitrans headwords; or produces stardict files.
   * 
-  * Major entry points are: fixHeadwordsInFinalFile (and its wrappers like addOptitrans), makeStardict, main.
+  * Also see babylonTools object.
   */
 object babylonProcessor extends BatchProcessor{
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
