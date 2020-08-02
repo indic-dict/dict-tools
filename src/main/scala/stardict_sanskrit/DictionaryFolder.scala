@@ -4,6 +4,7 @@ import java.io.File
 
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.Utils
+import sanskritnlp.dictionary.StardictFolder
 import stardict_sanskrit.babylonProcessor.log
 
 import scala.sys.process._
@@ -14,19 +15,21 @@ import scala.sys.process._
   * @param name
   */
 class DictionaryFolder(val name: String) {
+
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   var dirName: String = _
   var dirFile: File = _
+  var entryFilesDir: File = _
   var babylonFile: Option[File] = None
   var babylonFinalFile: Option[File] = None
-  var ifoFile: Option[File] = None
+  var stardictFolder: StardictFolder = null
   var tarFile: Option[File] = None
-  var dictFile: Option[File] = None
-  var dictdzFile: Option[File] = None
 
-  def this(dirFileIn: java.io.File ) = {
+  def this(dirFileIn: java.io.File, entryFilesDirIn: java.io.File = null) = {
     this(dirFileIn.getName)
     dirFile = dirFileIn
+    stardictFolder = new StardictFolder(dirFileIn=dirFileIn)
+    entryFilesDir = entryFilesDirIn
     dirName = dirFile.getName.replaceAll(".*/", "")
     babylonFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.babylon"))
     babylonFinalFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.babylon_final"))
@@ -34,19 +37,24 @@ class DictionaryFolder(val name: String) {
     if (getTarDirFile.exists) {
       tarFile = getTarDirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.*.tar.gz"))
     }
-    ifoFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.ifo"))
-    dictFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.dict"))
-    dictdzFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.dict.dz"))
     log debug toString
   }
 
+  def entryFilesNewerThanBabylon(): Boolean = {
+    if (entryFilesDir == null) {
+      false
+    } else {
+      val firstEntryFile = entryFilesDir.listFiles().headOption
+      firstEntryFile.isDefined && firstEntryFile.get.lastModified > babylonFile.get.lastModified
+    }
+  }
 
   def babylonFinalFileNewerThanBabylon(): Boolean = {
     babylonFinalFile.isDefined && (babylonFinalFile.get.lastModified > babylonFile.get.lastModified)
   }
 
   def tarFileNewerThanIfo(): Boolean = {
-    tarFile.isDefined && (tarFile.get.lastModified > ifoFile.get.lastModified)
+    tarFile.isDefined && (tarFile.get.lastModified > stardictFolder.ifoFile.get.lastModified)
   }
 
 
@@ -64,7 +72,7 @@ class DictionaryFolder(val name: String) {
 
   def ifoFileNewerThanBabylon(): Boolean = {
     val babFile = getFinalBabylonFile()
-    ifoFile.isDefined && (ifoFile.get.lastModified > babFile.lastModified)
+    stardictFolder.ifoFile.isDefined && (stardictFolder.ifoFile.get.lastModified > babFile.lastModified)
   }
   
 
@@ -86,8 +94,14 @@ class DictionaryFolder(val name: String) {
     if (getFinalBabylonFile != null) {
       format.format(getFinalBabylonFile().lastModified)
     } else {
-      format.format(ifoFile.get.lastModified)
+      format.format(stardictFolder.ifoFile.get.lastModified)
     }
+  }
+
+  def makeEntryFilesFromBabylonFile(): AnyVal = {
+    val babFile = getFinalBabylonFile
+    log info (f"Making entry files from: ${babFile.getCanonicalPath}")
+    
   }
 
   def makeStardictFromBabylonFile(babylon_binary: String): AnyVal = {
@@ -96,9 +110,9 @@ class DictionaryFolder(val name: String) {
     val (status, stdout, stderr) = Utils.runCommandLimitOutput(s"$babylon_binary ${babFile.getCanonicalPath}")
     log info ("stdout excerpt: \n" + stdout)
     log info ("stderr excerpt: \n" + stderr)
-    dictFile = dirFile.listFiles.map(_.getCanonicalFile).filter(_.getName.matches(s".*/?${dirName}.dict")).headOption
-    if (dictFile.nonEmpty) {
-      s"dictzip ${dictFile.get.getCanonicalPath}".!
+    stardictFolder.dictFile = dirFile.listFiles.map(_.getCanonicalFile).filter(_.getName.matches(s".*/?${dirName}.dict")).headOption
+    if (stardictFolder.dictFile.nonEmpty) {
+      s"dictzip ${stardictFolder.dictFile.get.getCanonicalPath}".!
     }
   }
 
@@ -146,7 +160,7 @@ class DictionaryFolder(val name: String) {
   }
 
   override def toString: String =
-    s"${dirFile.getName} with ${babylonFile} babylon, ${babylonFinalFile} babylonFinal, ${ifoFile} ifo, ${tarFile} tar "
+    s"${dirFile.getName} with ${babylonFile} babylon, ${babylonFinalFile} babylonFinal, ${stardictFolder.ifoFile} ifo, ${tarFile} tar "
 }
 
 

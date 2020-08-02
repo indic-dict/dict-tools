@@ -1,6 +1,7 @@
 package stardict_sanskrit
 
 import org.slf4j.{Logger, LoggerFactory}
+import sanskritnlp.dictionary.babylonTools
 
 object batchProcessor extends BatchProcessor {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
@@ -20,7 +21,7 @@ object batchProcessor extends BatchProcessor {
       if (dictionary.babylonFile.isDefined) {
         val tarFileMatchesBabylon = dictionary.tarFileMatchesSource(githubRepo=githubRepo)
         if (!tarFileMatchesBabylon || overwrite) {
-          babylonProcessor.addOptitrans(dictPattern = dictionary.dirName, overwrite = overwrite)
+          babylonTools.addStandardHeadwords(infileStr = dictionary.babylonFile.get.getAbsolutePath)
           dictionary.makeStardictFromBabylonFile(babylonBinary)
           dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath))
           tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)
@@ -33,10 +34,10 @@ object batchProcessor extends BatchProcessor {
         }
       } else {
         log.info(s"**** No babylon file in ${dictionary.dirName} - skipping.")
-        if (dictionary.ifoFile.isDefined) {
-          val tarFileMatchesIfo = dictionary.tarFileMatchesSource(sourceFile = dictionary.ifoFile.get, githubRepo=githubRepo)
+        if (dictionary.stardictFolder.ifoFile.isDefined) {
+          val tarFileMatchesIfo = dictionary.tarFileMatchesSource(sourceFile = dictionary.stardictFolder.ifoFile.get, githubRepo=githubRepo)
           if (!tarFileMatchesIfo || overwrite) {
-            dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.ifoFile.get.getAbsolutePath))
+            dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.stardictFolder.ifoFile.get.getAbsolutePath))
           } else {
             log info(s"Tar file for ${dictionary.name} is not outdated. Not overwriting.")
             githubRepo.downloadTarFile(dictionary)

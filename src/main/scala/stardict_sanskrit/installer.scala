@@ -18,7 +18,7 @@ import java.io.File
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
-
+import sanskritnlp.dictionary.StardictTar
 
 case class DictInfo(dictTarUrl: String, destinationFolder: String, var dictName: String = null, var tarFilename : String = null, var timestamp: Long = 0) {
   tarFilename = dictTarUrl.split("/").last
@@ -90,7 +90,7 @@ class InstallerActor extends Actor with ActorLogging {
         log.info(s"Downloading ${dict.dictTarUrl}")
         val downloadAndExtractFuture = RichHttpAkkaClient.dumpToFile(dict.dictTarUrl, destinationTarPath.toString)(context.system).map(result => {
           if (result.wasSuccessful) {
-            tarProcessor.extractFile(archiveFileName = destinationTarPath.toString, destinationPath = destinationTarPath.getParent.toString)
+            new StardictTar(filePath=destinationTarPath.toString).extract(destinationPath = destinationTarPath.getParent.toString)
             new java.io.File(destinationTarPath.toString).delete()
             Success(s"Done with $dict")
           } else {

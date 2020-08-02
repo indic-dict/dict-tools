@@ -4,7 +4,6 @@ import java.io.{File, PrintWriter}
 
 import com.davidthomasbernal.stardict.Dictionary
 import org.slf4j.{Logger, LoggerFactory}
-import stardict_sanskrit.stardictProcessor.log
 
 object huetJson {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)

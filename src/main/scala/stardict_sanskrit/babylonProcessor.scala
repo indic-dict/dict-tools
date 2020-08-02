@@ -20,19 +20,6 @@ import scala.io.Source
 object babylonProcessor extends BatchProcessor{
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
 
-  /**
-    * Gets dictionaries matching a certain pattern.
-    * 
-    * @param file_pattern
-    * @param baseDir
-    * @return
-    */
-  def getMatchingBabylonDictionaries(file_pattern: String, baseDir: String = "."): List[DictionaryFolder] = {
-    val dictionaries = super.getMatchingDictionaries(file_pattern, baseDir).filter(_.getFinalBabylonFile != null)
-    log info (s"Got ${dictionaries.count(_.babylonFinalFile.isDefined)} babylon_final files")
-    log info (s"Got ${dictionaries.count(x => x.babylonFile.isDefined && x.babylonFinalFile.isEmpty)}  dicts without babylon_final files but with babylon file.")
-    dictionaries
-  }
 
   private def getRecursiveListOfFinalBabylonDicts(basePaths: Seq[String]): Seq[BabylonDictionary] = {
     val babylonFiles = getRecursiveSetOfDictDirs(basePaths=basePaths).map(_.getFinalBabylonFile).filterNot(_ == null)
@@ -43,45 +30,6 @@ object babylonProcessor extends BatchProcessor{
     })
     log info s"Got ${babylonDicts.size} babylon files. And they are: \n${babylonDicts.mkString("\n")}"
     babylonDicts.toList.sortBy(_.fileLocation)
-  }
-
-  def fixHeadwordsInFinalFile(file_pattern: String = ".*", baseDir: String = ".", headwordTransformer: (Array[String]) => Array[String], finalFileExtension: String = ".babylon_final", sort: Boolean = true, overwrite: Boolean = false) = {
-    val files_to_ignore = Set("spokensanskrit.babylon")
-    var dictionaries = getMatchingBabylonDictionaries(file_pattern, baseDir).filter(_.babylonFile.isDefined)
-    log info (s"Got ${dictionaries.length} babylon files")
-    var dictsToIgnore = dictionaries.filter(!overwrite && _.babylonFinalFileNewerThanBabylon())
-    if (dictsToIgnore.nonEmpty) {
-      log warn s"Ignoring these files, whose final babylon files seem updated:" + dictsToIgnore.mkString("\n")
-    }
-    dictionaries = dictionaries.filterNot(dictsToIgnore.contains(_))
-    log info (s"Got ${dictionaries.length} babylon files")
-
-    val babylon_files = dictionaries.map(_.babylonFile)
-
-    babylon_files.map(_.get.getCanonicalPath).foreach(file => {
-      if (files_to_ignore contains file) {
-        log info (f"skipping: $file")
-      } else {
-        log info (f"Fixing headwords in: $file")
-        sanskritnlp.dictionary.babylonTools.fixHeadwords(file, finalFileExtension, headwordTransformer, sort=sort)
-      }
-    })
-    // sys.exit()
-  }
-
-  def addOptitrans(dictPattern: String = ".*", baseDir: String = ".", overwrite: Boolean = false) = {
-    log info "=======================Adding optitrans headwords, making final babylon file."
-    val headwordTransformer = (headwords_original:Array[String]) => (
-      headwordTransformers.addOptitransFromDevanaagarii(
-        headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwordTransformers.addDevanaagariiFromOtherIndic(headwords_original)))
-      ).filterNot(_.isEmpty).distinct
-    fixHeadwordsInFinalFile(file_pattern=dictPattern, baseDir=baseDir, headwordTransformer=headwordTransformer, sort=false, overwrite=overwrite)
-  }
-
-  def stripNonOptitransHeadwords(file_pattern: String = ".*", baseDir: String = "."): Unit = {
-    log info "=======================stripNonOptitransHeadwords, making final babylon file."
-    val headwordTransformer = (headwords_original:Array[String]) => headwords_original.filterNot(iast.isEncoding)
-    fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=headwordTransformer)
   }
 
   def getWordToDictsMapFromPaths(basePaths: Seq[String], wordPattern: String = "(\\p{IsDevanagari})+"): mutable.HashMap[String, ListBuffer[BabylonDictionary]] = {
@@ -101,77 +49,6 @@ object babylonProcessor extends BatchProcessor{
     words.keys.toList.sorted.foreach(word => {
       val dictNames = words(word).map(_.dict_name)
       destination.println(s"$word\t${dictNames.mkString(",")}")
-    })
-    destination.close()
-  }
-
-  def getDevanagariOptitransFromIast(file_pattern: String = ".*", baseDir: String = ".") = {
-    log info "=======================Adding optitrans headwords, making final babylon file."
-    val toDevanAgarIAndOptitrans = (headwords_original:Array[String]) => headwords_original.map(
-      x => transliterator.transliterate(x, "iast", "dev")) ++ headwords_original.map(
-      x => transliterator.transliterate(x, "iast", "optitrans"))
-    fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=toDevanAgarIAndOptitrans)
-  }
-
-  /**
-    * Add optitrans and devanAgarI headwords from IAST. 
-    * 
-    * @param file_pattern
-    * @param baseDir
-    * @param indicWordSet
-    */
-  def getDevanagariOptitransFromIastIfIndic(file_pattern: String = ".*", baseDir: String = ".", indicWordSet: mutable.HashSet[String] = mutable.HashSet[String]()): Unit = {
-    log info "=======================Adding optitrans headwords, making final babylon file."
-    
-    val indicWordSetDev = indicWordSet.filter(devanAgarI.isEncoding)
-    
-    def isIndic(word: String) = indicWordSetDev.contains(iast.fromDevanagari(word)) || iast.isEncoding(word)
-    def transliterateIfIndic(x: String, destSchema: String) = if(isIndic(x)) {
-      transliterator.transliterate(x, "iast", destSchema)
-    } else {
-      x
-    }
-    
-    val toDevanAgarIAndOptitrans = (headwords_original:Array[String]) => headwords_original.map(
-      x => transliterateIfIndic(x, "dev")) ++ headwords_original.map(x => transliterateIfIndic(x, "optitrans"))
-    
-    fixHeadwordsInFinalFile(file_pattern=file_pattern, baseDir=baseDir, headwordTransformer=toDevanAgarIAndOptitrans)
-  }
-  
-  /**
-    * Makes stardict files from babylon files.
-    * 
-    * @param dictPattern
-    * @param babylonBinary
-    */
-  def makeStardict(dictPattern: String = ".*", babylonBinary: String, overwrite: Boolean = false) = {
-    log info "=======================makeStardict"
-    var dictionaries = getMatchingBabylonDictionaries(dictPattern)
-
-    var dictsToIgnore = dictionaries.filter(!overwrite && _.ifoFileNewerThanBabylon())
-    if (dictsToIgnore.nonEmpty) {
-      log warn s"Ignoring these files, whose dict files seem updated: " + dictsToIgnore.mkString("\n")
-    }
-    dictionaries = dictionaries.filterNot(dictsToIgnore.contains(_))
-    dictionaries.foreach(_.makeStardictFromBabylonFile(babylonBinary))
-  }
-  
-  /**
-    * Transliterates all words (mentioned to wordListFilePath) in sourceScheme to devanAgarI.
-    * 
-    * @param inFilePath
-    * @param outFilePath
-    * @param sourceScheme
-    * @param wordListFilePath
-    */
-  def transliterateAllIndicToDevanagarI(inFilePath: String, outFilePath: String, sourceScheme:String, wordListFilePath: String ="/home/vvasuki/stardict-sanskrit/wordlists/words_sa_dev.txt") = {
-    var wordSet = Source.fromFile(wordListFilePath, "utf8").getLines.map(_.split("\t").headOption.getOrElse("न")).map(transliterator.transliterate(_, transliterator.scriptDevanAgarI, sourceScheme)).toSet
-    val outFileObj = new File(outFilePath)
-    new File(outFileObj.getParent).mkdirs
-    val destination = new PrintWriter(outFileObj)
-    val inFile = Source.fromFile(inFilePath, "utf8").getLines().map(line => {
-      val outStr = transliterator.transliterateWordsIfIndic(in_str = line, wordSet=wordSet, sourceScheme=sourceScheme, destScheme = transliterator.scriptDevanAgarI)
-      destination.println(outStr)
     })
     destination.close()
   }

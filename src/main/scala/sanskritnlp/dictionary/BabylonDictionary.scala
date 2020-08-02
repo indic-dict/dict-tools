@@ -49,6 +49,7 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
     return returnTuple
   }
 
+
   def makeWordToLocationMap(headword_pattern: String = ".+") = {
     log info s"Making wordToLocationMap for $dict_name"
     fromFile(fileLocation)

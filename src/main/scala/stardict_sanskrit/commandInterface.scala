@@ -13,6 +13,8 @@ case class CommandConfig(mode: Option[String]=None,
                          dictPattern: Option[String]=None,
                          urlBase: Option[String]=None,
                          babylonBinary: Option[String]=None,
+                         entryFilesRootDir: Option[String]=None,
+                         dictionariesRootDir: Option[String]=None,
                          inputPaths: Option[String]=None,
                          githubToken: Option[String]=None,
                          overwrite: Option[Boolean]=None,
@@ -59,6 +61,22 @@ object commandInterface {
         .text("Add optitrans and devanAgarI headwords to babylon dictionaries.")
         .children(
           opt[String]("dictPattern")
+            .action((x, c) => c.copy(dictPattern = Some(x)))
+            .required(),
+          opt[Boolean]("overwrite")
+            .action((x, c) => c.copy(overwrite = Some(x))),
+        )
+      cmd("makeEntryFiles")
+        .action((_, c) => c.copy(mode = Some("addStandardHeadwords")))
+        .text("Make per-entry files.")
+        .children(
+          opt[String]("dictPattern")
+            .action((x, c) => c.copy(dictPattern = Some(x)))
+            .required(),
+          opt[String]("entryFilesRootDir")
+            .action((x, c) => c.copy(dictPattern = Some(x)))
+            .required(),
+          opt[String]("dictionariesRootDir")
             .action((x, c) => c.copy(dictPattern = Some(x)))
             .required(),
           opt[Boolean]("overwrite")
@@ -123,11 +141,6 @@ object commandInterface {
         log.debug(commandConfig.toString)
         commandConfig.mode.get match {
           case "install" => installer.install(destination = commandConfig.destinationPath.get, indexOfIndicesUrl = commandConfig.dictRepoIndexUrl.get, overwrite = commandConfig.overwrite.getOrElse(false))
-          case "addStandardHeadwords" => babylonProcessor.addOptitrans(dictPattern = commandConfig.dictPattern.get, overwrite = commandConfig.overwrite.getOrElse(false))
-          case "makeTars" => tarProcessor.makeTars(urlBase =commandConfig.urlBase.get, dictPattern = commandConfig.dictPattern.get, overwrite = commandConfig.overwrite.getOrElse(false))
-          case "compressAllDicts" => tarProcessor.compressAllDicts(basePaths = commandConfig.inputPaths.get.split(","), tarFilePath =  commandConfig.destinationPath.get)
-          case "makeStardict" => babylonProcessor.makeStardict(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false))
-          case "writeTarsList" => tarProcessor.writeTarsList(tarDestination =  commandConfig.destinationPath.get, urlBase =  commandConfig.urlBase.get)
           case "makeIndicStardictTar" => batchProcessor.makeIndicStardictTar(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false), tarBaseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken)
           case unknownCommand => log.error(s"Do not recognize $unknownCommand")
         }
