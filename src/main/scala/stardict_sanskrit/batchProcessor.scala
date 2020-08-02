@@ -21,7 +21,9 @@ object batchProcessor extends BatchProcessor {
       if (dictionary.babylonFile.isDefined) {
         val tarFileMatchesBabylon = dictionary.tarFileMatchesSource(githubRepo=githubRepo)
         if (!tarFileMatchesBabylon || overwrite) {
-          babylonTools.addStandardHeadwords(infileStr = dictionary.babylonFile.get.getAbsolutePath)
+          if (!dictionary.name.contains("spokensanskrit")) {
+            babylonTools.addStandardHeadwords(infileStr = dictionary.babylonFile.get.getAbsolutePath)
+          }
           dictionary.makeStardictFromBabylonFile(babylonBinary)
           dictionary.makeTar(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath))
           tarProcessor.writeTarsList(tarDestination = dictionary.getTarDirFile.getCanonicalPath, urlBase=tarBaseUrl)

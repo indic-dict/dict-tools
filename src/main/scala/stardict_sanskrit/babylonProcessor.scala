@@ -13,7 +13,7 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 /**
-  * Processes babylon files in various ways. For example - adds devanagari or opitrans headwords; or produces stardict files.
+  * Processes babylon files en masse in various ways.
   * 
   * Also see babylonTools object.
   */
