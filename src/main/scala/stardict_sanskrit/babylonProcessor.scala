@@ -32,9 +32,23 @@ object babylonProcessor extends BatchProcessor{
     babylonDicts.toList.sortBy(_.fileLocation)
   }
 
+  def mapWordToDicts(dictList: Seq[BabylonDictionary], headword_pattern: String): mutable.HashMap[String, ListBuffer[BabylonDictionary]] = {
+    val wordToDicts = new mutable.HashMap[String, ListBuffer[BabylonDictionary]]()
+    dictList.foreach(dictionary => {
+      // dictionary.makeWordToLocationMap(headword_pattern = "\\p{IsDevanagari}+")
+      dictionary.makeWordToMeaningsMap(headword_pattern)
+      dictionary.getWords.foreach(word => {
+        var dictList = wordToDicts.getOrElse(word, ListBuffer[BabylonDictionary]())
+        dictList += dictionary
+        wordToDicts += (word -> dictList)
+      })
+    })
+    wordToDicts
+  }
+
   def getWordToDictsMapFromPaths(basePaths: Seq[String], wordPattern: String = "(\\p{IsDevanagari})+"): mutable.HashMap[String, ListBuffer[BabylonDictionary]] = {
     val babylonDicts = getRecursiveListOfFinalBabylonDicts(basePaths = basePaths)
-    val wordToDicts = babylonTools.mapWordToDicts(dictList=babylonDicts, headword_pattern=wordPattern)
+    val wordToDicts = mapWordToDicts(dictList=babylonDicts, headword_pattern=wordPattern)
     log info s"Got ${wordToDicts.size} words"
     return wordToDicts
   }
