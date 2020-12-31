@@ -120,7 +120,9 @@ object installer {
     val resultFutureList = dictionaries.map( dictionary =>  ask(installerActorRef, (dictionary, overwrite)) )
     val futureOfResults: Unit = Utils.getFutureOfTrys(resultFutureList). onComplete {
       case Success(resultList) =>
-        log.info(resultList.mkString("\n"))
+        log.debug(resultList.mkString("\n"))
+        val resultListOverwritten = resultList.filterNot(_.toString.contains("Dict already exists"))
+        log.info(resultListOverwritten.mkString("\n"))
         system.terminate()
       case _ => log.error("This branch should not be reached!")
     }
