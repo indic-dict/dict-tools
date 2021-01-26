@@ -1,6 +1,9 @@
 package stardict_sanskrit
 
+import java.io.IOException
+
 import org.slf4j.{Logger, LoggerFactory}
+import sanskrit_coders.Utils
 import sanskritnlp.dictionary.babylonTools
 
 object batchProcessor extends BatchProcessor {
@@ -54,7 +57,23 @@ object batchProcessor extends BatchProcessor {
 
   }
 
+  def checkPyglossary: Boolean = {
+    try {
+      val (status, stdout, stderr) = Utils.runCommandLimitOutput("pyglossary --help")
+      if (status != 0) {
+        return false
+      }
+    } catch {
+      case _ => return false
+    } 
+    return true
+  }
+  
   def makeSlobs(dictPattern: String = ".*", babylon_binary: String, baseUrl: String, githubToken: Option[String] = None, overwrite: Boolean = false, baseDir: String = "."): Unit = {
+    if (!checkPyglossary) {
+      log warn("pyglossary not installed. Returning")
+      return 
+    }
     val dictionaries = this.getMatchingDictionaries(dictPattern, baseDir = baseDir)
     val githubRepo = GithubRepo.fromUrl(url = baseUrl, githubToken = githubToken)
     log info "=======================Full build from source to stardict tar."

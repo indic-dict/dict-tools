@@ -140,7 +140,6 @@ class DictionaryFolder(val name: String) {
 
 
   def makeSlobFromStardict(timestamp: Option[String] = None): AnyVal = {
-    val babFile = getFinalBabylonFile
     val slobFile = new File(getOutputDirFile("slob").getCanonicalPath, getExpectedFinalFileName(ext = "slob"))
     log info (f"Making slob from: ${stardictFolder.ifoFile.get.getCanonicalPath} to ${slobFile.getCanonicalPath}")
     val commandSeq = Seq("pyglossary", stardictFolder.ifoFile.get.getCanonicalPath, slobFile.getCanonicalPath)
