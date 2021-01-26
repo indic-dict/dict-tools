@@ -41,7 +41,7 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
         } else {
           return tarProcessor.getTimestampFromName(fileContent.headOption.get.name)
         }
-      case Left(e) => log error e.getMessage
+      case Left(e) => log error s"${e.getMessage}: ${getGitPath(dirPath)}, ${dirPath}, ${fileName}"
         return None
     }
   }

@@ -104,9 +104,16 @@ object batchProcessor extends BatchProcessor {
     val configFileContents = Source.fromResource("conf.local").mkString
     var config = ConfigFactory.parseString(configFileContents)
     val dictPattern = ".*"
-    var workingDir = "/home/vvasuki/indic-dict/stardict-sinhala/si-head/en-entries"
-    //    makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = false, baseDir = workingDir)
-    makeSlobs(dictPattern = ".*", "stardict-babylon", baseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = Some(config.getString("github_token")), overwrite = false, baseDir = workingDir)
-
+    def vyAkaraNaTest(): Unit = {
+      var workingDir = "/home/vvasuki/indic-dict/stardict-sanskrit-vyAkaraNa"
+      makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sanskrit-vyAkaraNa/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = false, baseDir = workingDir)
+    }
+    vyAkaraNaTest()
+    
+    def sinhalaTest(): Unit = {
+      var workingDir = "/home/vvasuki/indic-dict/stardict-sinhala/si-head/en-entries"
+//      makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = false, baseDir = workingDir)
+      makeSlobs(dictPattern = ".*", "stardict-babylon", baseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = Some(config.getString("github_token")), overwrite = false, baseDir = workingDir)
+    }
   }
 }
