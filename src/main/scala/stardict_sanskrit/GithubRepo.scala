@@ -19,54 +19,54 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 
-class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken: Option[String] = None, tarFileBranch: Option[String]=None) {
+class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken: Option[String] = None, branch: Option[String]=None) {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
 
   val githubClient: Github = Github(githubToken)
   
   def getGitPath(filePath: String) = filePath.replaceFirst(s".+/${githubRepo}/", "")
 
-  def getTarContents(tarDirFilePath: String): GHResponse[NonEmptyList[Content]] = {
-    val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = tarDirFilePath)), ref = tarFileBranch).exec[Future, HttpResponse[String]]()
+  def getDirContents(dirPath: String): GHResponse[NonEmptyList[Content]] = {
+    val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = dirPath)), ref = branch).exec[Future, HttpResponse[String]]()
     return Await.result(contentsResponseFuture, 20.seconds)
   }
   
-  def getTarFileNameTimestampFromGithub(dictionaryFolder: DictionaryFolder): Option[String] = {
-    getTarContents(dictionaryFolder.getTarDirFile.getAbsolutePath) match {
+  def getFileNameTimestampFromGithub(fileName: String, dirPath: String): Option[String] = {
+    getDirContents(dirPath = dirPath) match {
       case Right(GHResult(contents, status, headers)) =>
         // Assuming that the first commit is the latest. TODO: Do something more robust.
-        val tarContent = contents.filter(_.name.startsWith(dictionaryFolder.name))
-        if (tarContent.headOption.isEmpty) {
+        val fileContent = contents.filter(_.name.startsWith(fileName))
+        if (fileContent.headOption.isEmpty) {
           return None
         } else {
-          return tarProcessor.getTimestampFromName(tarContent.headOption.get.name)
+          return tarProcessor.getTimestampFromName(fileContent.headOption.get.name)
         }
       case Left(e) => log error e.getMessage
         return None
     }
   }
 
-  def getTarContentList(tarDirFilePath: String): List[Content] = {
-    getTarContents(tarDirFilePath) match {
+  def getContentList(tarDirFilePath: String, extension:String ="tar.gz"): List[Content] = {
+    getDirContents(tarDirFilePath) match {
       case Right(GHResult(contents, status, headers)) =>
         // Assuming that the first commit is the latest. TODO: Do something more robust.
-        val tarContent = contents.filter(_.name.endsWith("tar.gz"))
+        val tarContent = contents.filter(_.name.endsWith(extension))
         return tarContent
       case Left(e) => log error e.getMessage
         return List()
     }
   }
   
-  def downloadTarFile(dictionaryFolder: DictionaryFolder): Unit = {
-    getTarContents(dictionaryFolder.getTarDirFile.getAbsolutePath) match {
+  def downloadFileByPrefix(fileName: String, dirPath: String): Unit = {
+    getDirContents(dirPath = dirPath) match {
       case Right(GHResult(contents, status, headers)) =>
         // Assuming that the first commit is the latest. TODO: Do something more robust.
-        val tarContent = contents.filter(_.name.startsWith(dictionaryFolder.name))
+        val tarContent = contents.filter(_.name.startsWith(fileName))
         if (tarContent.headOption.isEmpty) {
-          log error s"Did not find tar file for ${dictionaryFolder.name}!"
+          log error s"Did not find tar file for ${fileName}!"
         } else {
           import sys.process._
-          val destPath = new File(dictionaryFolder.getTarDirFile, tarContent.head.name)
+          val destPath = new File(dirPath, tarContent.head.name)
           log info s"Downloading ${tarContent.head.download_url.get} to ${destPath}"
           implicit val actorSystem = ActorSystem("HttpAkka")
           Await.ready(RichHttpAkkaClient.dumpToFile(tarContent.head.download_url.get, destPath.toString), Duration(3, MINUTES))
@@ -102,7 +102,7 @@ object GithubRepo {
 
   def fromUrl(url: String, githubToken: Option[String] = None): GithubRepo = {
     val (githubOrg, githubRepo, githubBranch) = GithubRepo.getGithubOrgRepoBranch(url)
-    return new GithubRepo(githubOrg=githubOrg, githubRepo=githubRepo, tarFileBranch=Some(githubBranch), githubToken=githubToken)
+    return new GithubRepo(githubOrg=githubOrg, githubRepo=githubRepo, branch=Some(githubBranch), githubToken=githubToken)
   }
   
   def getGithubOrgRepoBranch(someUrl: String): (String, String, String) = {

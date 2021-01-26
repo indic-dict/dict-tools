@@ -24,6 +24,7 @@ class DictionaryFolder(val name: String) {
   var babylonFinalFile: Option[File] = None
   var stardictFolder: StardictFolder = null
   var tarFile: Option[File] = None
+  var slobFile: Option[File] = None
 
   def this(dirFileIn: java.io.File, entryFilesDirIn: java.io.File = null) = {
     this(dirFileIn.getName)
@@ -34,8 +35,11 @@ class DictionaryFolder(val name: String) {
     babylonFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.babylon"))
     babylonFinalFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.babylon_final"))
 
-    if (getTarDirFile.exists) {
-      tarFile = getTarDirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.*.tar.gz"))
+    if (getOutputDirFile("tar").exists) {
+      tarFile = getOutputDirFile("tar").listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.*.tar.gz"))
+    }
+    if (getOutputDirFile("slob").exists) {
+      tarFile = getOutputDirFile("slob").listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.*.slob"))
     }
     log debug toString
   }
@@ -76,12 +80,12 @@ class DictionaryFolder(val name: String) {
   }
   
 
-  def tarFileMatchesSource(githubRepo: GithubRepo, sourceFile: File=babylonFile.get,  sourceFileBranch: Option[String]=None, tarFileBranch: Option[String]=None): Boolean = {
+  def gitDictFileMatchesSource(githubRepo: GithubRepo, sourceFile: File=babylonFile.get, sourceFileBranch: Option[String]=None, outputType: String): Boolean = {
     val babylonUpdateTimestamp = githubRepo.getGithubUpdateTime(filePath = sourceFile.getAbsolutePath, branch = sourceFileBranch)
     if (babylonUpdateTimestamp.isDefined) {
-      val tarFileTimestamp = githubRepo.getTarFileNameTimestampFromGithub(dictionaryFolder = this)
-      log debug(s"babylon: ${babylonUpdateTimestamp}, tar: ${tarFileTimestamp}")
-      return babylonUpdateTimestamp == tarFileTimestamp
+      val gitFileTimestamp = githubRepo.getFileNameTimestampFromGithub(fileName = this.name, dirPath = this.getOutputDirFile(outputType = outputType).getAbsolutePath)
+      log debug(s"babylon: ${babylonUpdateTimestamp}, git file: ${gitFileTimestamp}")
+      return babylonUpdateTimestamp == gitFileTimestamp
     } else {
       return false
     }
@@ -116,6 +120,20 @@ class DictionaryFolder(val name: String) {
     }
   }
 
+  def makeSlobFromBabylonFile(timestamp: Option[String] = None): AnyVal = {
+    val babFile = getFinalBabylonFile
+    val slobFile = new File(getOutputDirFile("slob").getCanonicalPath, getExpectedFinalFileName(ext = "slob"))
+    log info (f"Making slob from: ${babFile.getCanonicalPath} to ${slobFile.getCanonicalPath}")
+//    TODO: this command is not working.
+    val commandSeq = Seq("python", "-c", s"""'from dict_curation import babylon; babylon.to_slob("${babFile.getCanonicalPath}", "${slobFile.getCanonicalPath}")'""")
+    log debug(commandSeq.toString())
+    val (status, stdout, stderr) = Utils.runCommandSeqLimitOutput(commandSeq)
+    log info ("command status: \n" + status)
+    log info ("stdout excerpt: \n" + stdout)
+    log info ("stderr excerpt: \n" + stderr)
+    setSizeHint(fileObj = slobFile, timestamp = timestamp)
+  }
+  
 
   def delete_large_intermediate_files(): Unit = {
     val babFile = getFinalBabylonFile
@@ -127,11 +145,20 @@ class DictionaryFolder(val name: String) {
   }
 
 
-  def getExpectedTarFileName(sizeMbString: String = "unk", timestamp: Option[String]= None): String = s"${dirName}__${timestamp.getOrElse(getLocalBabylonOrIfoTimestampString)}__${sizeMbString}MB.tar.gz"
-  def getTarDirFile = new File(dirFile.getParentFile.getCanonicalPath, "/tars")
+  def getExpectedFinalFileName(sizeMbString: String = "unk", timestamp: Option[String]= None, ext: String): String = s"${dirName}__${timestamp.getOrElse(getLocalBabylonOrIfoTimestampString)}__${sizeMbString}MB.${ext}"
+
+  def getTarDirFile = getOutputDirFile(outputType = "tar")
+
+  def getOutputDirFile(outputType: String) = outputType match {
+    case _ => new File(dirFile.getParentFile.getCanonicalPath, s"/${outputType}s")
+  }
+
+  def getOutputListFile(outputType: String) = outputType match {
+    case "_" => new File(this.getOutputDirFile(outputType = outputType).getCanonicalPath, s"/${outputType}s")
+  }
 
   def tarFileMatchesBabylon(): Boolean = {
-    tarFile.isDefined && tarFile.get.getName.matches(s".*/?${getExpectedTarFileName(sizeMbString = ".*")}")
+    tarFile.isDefined && tarFile.get.getName.matches(s".*/?${getExpectedFinalFileName(sizeMbString = ".*", ext = "tar.gz")}")
   }
 
   def makeTar(filePatternToTar: String=tarProcessor.filePatternToTar, timestamp: Option[String] = None) = {
@@ -141,32 +168,31 @@ class DictionaryFolder(val name: String) {
         tarFile.get.delete()
       })
     }
-    val targetTarFile = new File(getTarDirFile.getCanonicalPath, getExpectedTarFileName())
+    val targetTarFile = new File(getTarDirFile.getCanonicalPath, getExpectedFinalFileName(ext = "tar.gz"))
     targetTarFile.getParentFile.mkdirs
     val filesToCompress = dirFile.listFiles.map(_.getCanonicalPath).filter(x => x.matches(filePatternToTar))
     val command = s"tar --transform s/.*\\///g -czf ${targetTarFile.getCanonicalPath} ${filesToCompress.mkString(" ")}"
     log info command
     command.!
+    setSizeHint(fileObj = targetTarFile, timestamp = timestamp)
 
-    // Add size hint.
-    val sizeMbString = (targetTarFile.length()/(1024*1024)).toLong.toString
-    val fileWithSize = new File(getTarDirFile.getCanonicalPath, getExpectedTarFileName(sizeMbString = sizeMbString, timestamp=timestamp))
-    val renameResult = targetTarFile.renameTo(fileWithSize)
-    if (!renameResult) {
-      log warn s"Renamed ${targetTarFile} to ${fileWithSize}: $renameResult"
-    } else {
-      log info s"Renamed ${targetTarFile} to ${fileWithSize}: $renameResult"
-    }
   }
 
+  def setSizeHint(fileObj: File, timestamp: Option[String] = None): Unit = {
+    if (!fileObj.exists()) {
+      return 
+    }
+    // Add size hint.
+    val sizeMbString = (fileObj.length()/(1024*1024)).toLong.toString
+    val fileWithSize = new File(getTarDirFile.getCanonicalPath, getExpectedFinalFileName(sizeMbString = sizeMbString, timestamp=timestamp, ext = "slob"))
+    val renameResult = fileObj.renameTo(fileWithSize)
+    if (!renameResult) {
+      log warn s"Renamed ${fileObj} to ${fileWithSize}: $renameResult"
+    } else {
+      log info s"Renamed ${fileObj} to ${fileWithSize}: $renameResult"
+    }  
+  }
+  
   override def toString: String =
-    s"${dirFile.getName} with ${babylonFile} babylon, ${babylonFinalFile} babylonFinal, ${stardictFolder.ifoFile} ifo, ${tarFile} tar "
+    s"${dirFile.getName} with ${babylonFile} babylon, ${babylonFinalFile} babylonFinal, ${stardictFolder.ifoFile} ifo, ${tarFile} tar, ${slobFile} slob "
 }
-
-
-
-
-
-
-
-

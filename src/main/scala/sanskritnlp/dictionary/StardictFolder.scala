@@ -13,6 +13,7 @@ class StardictFolder(val name: String) {
   var tarFile: Option[File] = None
   var dictFile: Option[File] = None
   var dictdzFile: Option[File] = None
+  var slobFile: Option[File] = None
 
   def this(dirFileIn: java.io.File) = {
     this(dirFileIn.getName)
@@ -20,6 +21,7 @@ class StardictFolder(val name: String) {
     ifoFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*\\.ifo"))
     dictFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*\\.dict"))
     dictdzFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*\\.dict.dz"))
+    slobFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*\\.slob"))
     log debug toString
 
   }

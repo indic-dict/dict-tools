@@ -36,7 +36,7 @@ object babylonTools {
 
   def fixHeadwords(infileStr: String, outputExt: String, headwordTransformer: (Array[String]) => Array[String], sort: Boolean = true): Unit = {
     log info ("Processing " + infileStr)
-    val outfileStr = infileStr.replaceFirst("\\.[^.]+$", outputExt)
+    val outfileStr = infileStr.replaceFirst("\\.[^.]+$", "." + outputExt)
     log info ("Will produce " + outfileStr)
     val outFileObj = new File(outfileStr)
     new File(outFileObj.getParent).mkdirs
