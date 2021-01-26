@@ -1,10 +1,11 @@
 package stardict_sanskrit
 
-import java.io.IOException
-
+import com.typesafe.config.ConfigFactory
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.Utils
 import sanskritnlp.dictionary.babylonTools
+
+import scala.io.Source
 
 object batchProcessor extends BatchProcessor {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
@@ -100,10 +101,12 @@ object batchProcessor extends BatchProcessor {
 
 
   def main(args: Array[String]): Unit = {
+    val configFileContents = Source.fromResource("conf.local").mkString
+    var config = ConfigFactory.parseString(configFileContents)
     val dictPattern = ".*"
     var workingDir = "/home/vvasuki/indic-dict/stardict-sinhala/si-head/en-entries"
     //    makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = false, baseDir = workingDir)
-    makeSlobs(dictPattern = ".*", "stardict-babylon", baseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = false, baseDir = workingDir)
+    makeSlobs(dictPattern = ".*", "stardict-babylon", baseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = Some(config.getString("github_token")), overwrite = false, baseDir = workingDir)
 
   }
 }

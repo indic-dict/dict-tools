@@ -13,5 +13,5 @@ elif [ -f "/usr/bin/stardict-babylon" ]
 fi
 
 # Set default value
-GITHUB_TOKEN=${3/GITHUB_TOKEN=/:-NONE}
-java -cp "$PATH_TO_JARS/bin/artifacts/dict-tools.jar" stardict_sanskrit.commandInterface makeIndicStardictTar  --urlBase=$1 --${2/DICTS=/dictPattern=}  --babylonBinary=$BABYLON_BINARY --githubToken=$GITHUB_TOKEN
+GITHUB_TOKEN=${3:-NONE}
+java -cp "$PATH_TO_JARS/bin/artifacts/dict-tools.jar" stardict_sanskrit.commandInterface makeIndicStardictTar  --urlBase=$1 --${2/DICTS=/dictPattern=}  --babylonBinary=$BABYLON_BINARY -${2/GITHUB_TOKEN=/githubToken=}
