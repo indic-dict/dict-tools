@@ -137,11 +137,24 @@ class DictionaryFolder(val name: String) {
     log info ("stderr excerpt: \n" + stderr)
     setSizeHint(fileObj = slobFile, timestamp = timestamp)
   }
-  
+
+
+  def makeSlobFromStardict(timestamp: Option[String] = None): AnyVal = {
+    val babFile = getFinalBabylonFile
+    val slobFile = new File(getOutputDirFile("slob").getCanonicalPath, getExpectedFinalFileName(ext = "slob"))
+    log info (f"Making slob from: ${stardictFolder.ifoFile.get.getCanonicalPath} to ${slobFile.getCanonicalPath}")
+    val commandSeq = Seq("pyglossary", stardictFolder.ifoFile.get.getCanonicalPath, slobFile.getCanonicalPath)
+    log debug(commandSeq.toString())
+    val (status, stdout, stderr) = Utils.runCommandSeqLimitOutput(commandSeq)
+    log info ("command status: \n" + status)
+    log info ("stdout excerpt: \n" + stdout)
+    log info ("stderr excerpt: \n" + stderr)
+    setSizeHint(fileObj = slobFile, timestamp = timestamp)
+  }
 
   def delete_large_intermediate_files(): Unit = {
     val babFile = getFinalBabylonFile
-    if (babFile.getName.endsWith("final_babylon") && babFile.length() > 99000000) {
+    if (babFile.getName.endsWith("babylon_final") && babFile.length() > 99000000) {
       log warn (s"Deleted large final babylon file $babFile of size ${babFile.length()} with result ${babFile.delete()}")
     } else {
       log info (s"Keeping final babylon file $babFile of size ${babFile.length()}")
@@ -158,7 +171,7 @@ class DictionaryFolder(val name: String) {
   }
 
   def getOutputListFile(outputType: String) = outputType match {
-    case "_" => new File(this.getOutputDirFile(outputType = outputType).getCanonicalPath, s"/${outputType}s")
+    case _ => new File(this.getOutputDirFile(outputType = outputType).getCanonicalPath, s"/${outputType}s.MD")
   }
 
   def tarFileMatchesBabylon(): Boolean = {
@@ -188,7 +201,7 @@ class DictionaryFolder(val name: String) {
     }
     // Add size hint.
     val sizeMbString = (fileObj.length()/(1024*1024)).toLong.toString
-    val fileWithSize = new File(getTarDirFile.getCanonicalPath, getExpectedFinalFileName(sizeMbString = sizeMbString, timestamp=timestamp, ext = "slob"))
+    val fileWithSize = new File(fileObj.getParentFile.getCanonicalPath, getExpectedFinalFileName(sizeMbString = sizeMbString, timestamp=timestamp, ext = "slob"))
     val renameResult = fileObj.renameTo(fileWithSize)
     if (!renameResult) {
       log warn s"Renamed ${fileObj} to ${fileWithSize}: $renameResult"

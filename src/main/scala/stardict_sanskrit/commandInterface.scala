@@ -142,7 +142,7 @@ object commandInterface {
         commandConfig.mode.get match {
           case "install" => installer.install(destination = commandConfig.destinationPath.get, indexOfIndicesUrl = commandConfig.dictRepoIndexUrl.get, overwrite = commandConfig.overwrite.getOrElse(false))
           case "makeIndicStardictTar" => batchProcessor.makeIndicStardictTar(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false), tarBaseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken)
-            batchProcessor.makeSlobs(dictPattern = commandConfig.dictPattern.get, overwrite = commandConfig.overwrite.getOrElse(false), baseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken)          
+            batchProcessor.makeSlobs(dictPattern = commandConfig.dictPattern.get, overwrite = commandConfig.overwrite.getOrElse(false), baseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken, babylon_binary = commandConfig.babylonBinary.get)          
           case unknownCommand => log.error(s"Do not recognize $unknownCommand")
         }
       }

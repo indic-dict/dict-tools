@@ -30,7 +30,7 @@ object babylonTools {
       headwordTransformers.addOptitransFromDevanaagarii(
         headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwordTransformers.addDevanaagariiFromOtherIndic(headwords_original)))
       ).filterNot(_.isEmpty).distinct
-    fixHeadwords(infileStr = infileStr, outputExt = "final_babylon", headwordTransformer=headwordTransformer)
+    fixHeadwords(infileStr = infileStr, outputExt = "babylon_final", headwordTransformer=headwordTransformer)
   }
 
 
