@@ -33,6 +33,8 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+libraryDependencies += "com.ibm.icu" % "icu4j" % "68.2"
+libraryDependencies += "org.tukaani" % "xz" % "1.0"
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
