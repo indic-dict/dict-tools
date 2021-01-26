@@ -124,8 +124,12 @@ class DictionaryFolder(val name: String) {
     val babFile = getFinalBabylonFile
     val slobFile = new File(getOutputDirFile("slob").getCanonicalPath, getExpectedFinalFileName(ext = "slob"))
     log info (f"Making slob from: ${babFile.getCanonicalPath} to ${slobFile.getCanonicalPath}")
-//    TODO: this command is not working.
-    val commandSeq = Seq("python", "-c", s"""'from dict_curation import babylon; babylon.to_slob("${babFile.getCanonicalPath}", "${slobFile.getCanonicalPath}")'""")
+//    TODO: this command is not working. No output. No error
+//    val commandSeq = Seq("python", "-c", s"""'from dict_curation import babylon; babylon.to_slob("${babFile.getCanonicalPath}", "${slobFile.getCanonicalPath}")'""")
+
+    // The below fails with RuntimeError: iterating over a reader while it's not open
+    // pyglossary  --read-format BabylonBgl --utf8-check  /home/vvasuki/indic-dict/stardict-sinhala/si-head/en-entries/carter/carter.babylon /home/vvasuki/indic-dict/stardict-sinhala/si-head/en-entries/slobs/carter__2018-03-22_03-14-55__unkMB.slob   
+    val commandSeq = Seq("pyglossary", "--read-format", "bgl", babFile.getCanonicalPath, slobFile.getCanonicalPath)
     log debug(commandSeq.toString())
     val (status, stdout, stderr) = Utils.runCommandSeqLimitOutput(commandSeq)
     log info ("command status: \n" + status)

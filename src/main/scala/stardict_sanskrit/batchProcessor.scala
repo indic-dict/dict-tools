@@ -69,7 +69,7 @@ object batchProcessor extends BatchProcessor {
         } else {
           log info (s"Slob file for ${dictionary.name} is not outdated. Not overwriting.")
           githubRepo.downloadFileByPrefix(dictionary.name, dirPath = dictionary.getOutputDirFile("slob").getAbsolutePath)
-          tarProcessor.writeFilesListMd(mdPath = dictionary.getOutputListFile(outputType = "slob").getCanonicalPath, urlBase = baseUrl, ext = "slob")
+          tarProcessor.writeFilesListMd(mdPath = dictionary.getOutputListFile(outputType = "slob").getCanonicalPath, urlBase = baseUrl.replaceAll("/tars", "/slobs"), ext = "slob")
         }
       }
     })
