@@ -4,6 +4,7 @@ import java.io.File
 
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.Utils
+import sanskrit_coders.Utils.appendToStringTillLimit
 import sanskritnlp.dictionary.StardictFolder
 import stardict_sanskrit.babylonProcessor.log
 
@@ -142,6 +143,8 @@ class DictionaryFolder(val name: String) {
   def makeSlobFromStardict(timestamp: Option[String] = None): AnyVal = {
     val slobFile = new File(getOutputDirFile("slob").getCanonicalPath, getExpectedFinalFileName(ext = "slob"))
     log info (f"Making slob from: ${stardictFolder.ifoFile.get.getCanonicalPath} to ${slobFile.getCanonicalPath}")
+    slobFile.getParentFile.mkdirs()
+    if (slobFile.exists()) slobFile.delete()
     val commandSeq = Seq("pyglossary", stardictFolder.ifoFile.get.getCanonicalPath, slobFile.getCanonicalPath)
     log debug(commandSeq.toString())
     val (status, stdout, stderr) = Utils.runCommandSeqLimitOutput(commandSeq)

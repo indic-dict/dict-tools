@@ -21,9 +21,11 @@ libraryDependencies ++= Seq(
   ,"org.apache.commons" % "commons-compress" % "1.18"
   , "com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.31"
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
-  , "com.github.sanskrit-coders" % "scala-utils_2.12" % "1.10"
+  , "com.github.sanskrit-coders" % "scala-utils_2.12" % "1.15"
   ,  "com.47deg" %% "github4s" % "0.20.1"
   , "com.github.scopt" % "scopt_2.12" % "4.0.0-RC2"
+  , "com.ibm.icu" % "icu4j" % "68.2"
+  , "org.tukaani" % "xz" % "1.0"
 ).map(_.exclude("org.slf4j", "*"))
 
 //insert one without exclusion
@@ -33,8 +35,6 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
-libraryDependencies += "com.ibm.icu" % "icu4j" % "68.2"
-libraryDependencies += "org.tukaani" % "xz" % "1.0"
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 

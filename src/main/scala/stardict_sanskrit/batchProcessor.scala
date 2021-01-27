@@ -70,7 +70,7 @@ object batchProcessor extends BatchProcessor {
     return true
   }
   
-  def makeSlobs(dictPattern: String = ".*", babylon_binary: String, baseUrl: String, githubToken: Option[String] = None, overwrite: Boolean = false, baseDir: String = "."): Unit = {
+  def makeSlobs(dictPattern: String = ".*", babylonBinary: String, baseUrl: String, githubToken: Option[String] = None, overwrite: Boolean = false, baseDir: String = "."): Unit = {
     if (!checkPyglossary) {
       log warn("pyglossary not installed. Returning")
       return 
@@ -83,7 +83,7 @@ object batchProcessor extends BatchProcessor {
         if (!dictionary.name.contains("spokensanskrit") && !dictionary.babylonFinalFileNewerThanBabylon()) {
           babylonTools.addStandardHeadwords(infileStr = dictionary.babylonFile.get.getAbsolutePath)
         }
-        dictionary.makeStardictFromBabylonFile(babylon_binary = babylon_binary)
+        dictionary.makeStardictFromBabylonFile(babylon_binary = babylonBinary)
       }
       if (dictionary.stardictFolder.ifoFile.isDefined) {
         val slobFileMatchesBabylon = dictionary.babylonFile.isDefined && dictionary.gitDictFileMatchesSource(sourceFile = dictionary.babylonFile.get, githubRepo = githubRepo, outputType = "slob")
@@ -119,6 +119,13 @@ object batchProcessor extends BatchProcessor {
       makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
 //      makeSlobs(dictPattern = ".*", "stardict-babylon", baseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = Some(config.getString("github_token")), overwrite = false, baseDir = workingDir)
     }
-    sinhalaTest()
+//    sinhalaTest()
+
+    def sanskritTest(from: String="sa", to: String="en"): Unit = {
+      var workingDir = s"/home/vvasuki/indic-dict/stardict-sanskrit/${from}-head/${to}-entries/"
+//      makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = s"https://github.com/indic-dict/stardict-sanskrit/raw/gh-pages/${from}-head/${to}-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
+      makeSlobs(dictPattern = ".*", babylonBinary = "stardict-babylon", baseUrl = s"https://github.com/indic-dict/stardict-sanskrit/raw/gh-pages/${from}-head/${to}-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
+    }
+    sanskritTest()
   }
 }
