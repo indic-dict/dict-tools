@@ -108,12 +108,13 @@ object batchProcessor extends BatchProcessor {
       var workingDir = "/home/vvasuki/indic-dict/stardict-sanskrit-vyAkaraNa"
       makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sanskrit-vyAkaraNa/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = false, baseDir = workingDir)
     }
-    vyAkaraNaTest()
+//    vyAkaraNaTest()
     
     def sinhalaTest(): Unit = {
       var workingDir = "/home/vvasuki/indic-dict/stardict-sinhala/si-head/en-entries"
-//      makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = false, baseDir = workingDir)
-      makeSlobs(dictPattern = ".*", "stardict-babylon", baseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = Some(config.getString("github_token")), overwrite = false, baseDir = workingDir)
+      makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
+//      makeSlobs(dictPattern = ".*", "stardict-babylon", baseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = Some(config.getString("github_token")), overwrite = false, baseDir = workingDir)
     }
+    sinhalaTest()
   }
 }

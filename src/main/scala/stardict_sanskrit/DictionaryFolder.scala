@@ -200,7 +200,11 @@ class DictionaryFolder(val name: String) {
     }
     // Add size hint.
     val sizeMbString = (fileObj.length()/(1024*1024)).toLong.toString
-    val fileWithSize = new File(fileObj.getParentFile.getCanonicalPath, getExpectedFinalFileName(sizeMbString = sizeMbString, timestamp=timestamp, ext = "slob"))
+    var ext = fileObj.getName.split("\\.").last
+    if (fileObj.getName.contains(".tar.gz")) {
+      ext = "tar.gz"
+    }
+    val fileWithSize = new File(fileObj.getParentFile.getCanonicalPath, getExpectedFinalFileName(sizeMbString = sizeMbString, timestamp=timestamp, ext = ext))
     val renameResult = fileObj.renameTo(fileWithSize)
     if (!renameResult) {
       log warn s"Renamed ${fileObj} to ${fileWithSize}: $renameResult"
