@@ -58,7 +58,7 @@ object batchProcessor extends BatchProcessor {
 
   }
 
-  def checkPyglossary: Boolean = {
+  def hasPyglossary: Boolean = {
     try {
       val (status, stdout, stderr) = Utils.runCommandLimitOutput("pyglossary --help")
       if (status != 0) {
@@ -71,7 +71,7 @@ object batchProcessor extends BatchProcessor {
   }
   
   def makeSlobs(dictPattern: String = ".*", babylonBinary: String, baseUrl: String, githubToken: Option[String] = None, overwrite: Boolean = false, baseDir: String = "."): Unit = {
-    if (!checkPyglossary) {
+    if (!hasPyglossary) {
       log warn("pyglossary not installed. Returning")
       return 
     }
@@ -84,6 +84,7 @@ object batchProcessor extends BatchProcessor {
           babylonTools.addStandardHeadwords(infileStr = dictionary.babylonFile.get.getAbsolutePath)
         }
         dictionary.makeStardictFromBabylonFile(babylon_binary = babylonBinary)
+        log info "=======================Full build from source to slob."
       }
       if (dictionary.stardictFolder.ifoFile.isDefined) {
         val slobFileMatchesBabylon = dictionary.babylonFile.isDefined && dictionary.gitDictFileMatchesSource(sourceFile = dictionary.babylonFile.get, githubRepo = githubRepo, outputType = "slob")

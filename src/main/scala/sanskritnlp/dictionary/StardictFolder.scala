@@ -26,6 +26,8 @@ class StardictFolder(val name: String) {
 
   }
 
+  override def toString: String = dirFile.getCanonicalPath
+
   def decompileToBabylon() = {
     val stardict = Dictionary.fromIfo(ifoFile.get.getAbsolutePath, true)
     val stardictIterator = stardict.getIterator
