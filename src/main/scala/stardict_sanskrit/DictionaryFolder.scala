@@ -5,7 +5,7 @@ import java.io.File
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.Utils
 import sanskrit_coders.Utils.appendToStringTillLimit
-import sanskritnlp.dictionary.StardictFolder
+import sanskritnlp.dictionary.{StardictFolder, babylonTools}
 import stardict_sanskrit.babylonProcessor.log
 
 import scala.sys.process._
@@ -110,6 +110,10 @@ class DictionaryFolder(val name: String) {
   }
 
   def makeStardictFromBabylonFile(babylon_binary: String): AnyVal = {
+    if (!name.contains("spokensanskrit") && !babylonFinalFileNewerThanBabylon()) {
+      babylonTools.addStandardHeadwords(infileStr = babylonFile.get.getAbsolutePath)
+    }
+
     val babFile = getFinalBabylonFile
     log info (f"Making stardict from: ${babFile.getCanonicalPath}")
     val (status, stdout, stderr) = Utils.runCommandLimitOutput(s"$babylon_binary ${babFile.getCanonicalPath}")
