@@ -77,7 +77,7 @@ object batchProcessor extends BatchProcessor {
     }
     val dictionaries = this.getMatchingDictionaries(dictPattern, baseDir = baseDir)
     val githubRepo = GithubRepo.fromUrl(url = baseUrl, githubToken = githubToken)
-    log info "=======================Full build from source to stardict tar."
+    log info "=======================Full build from source to slob."
     dictionaries.foreach(dictionary => {
       if (dictionary.babylonFile.isDefined && dictionary.stardictFolder.ifoFile.isEmpty) {
         if (!dictionary.name.contains("spokensanskrit") && !dictionary.babylonFinalFileNewerThanBabylon()) {
@@ -86,9 +86,13 @@ object batchProcessor extends BatchProcessor {
         dictionary.makeStardictFromBabylonFile(babylon_binary = babylon_binary)
       }
       if (dictionary.stardictFolder.ifoFile.isDefined) {
-        val slobFileMatchesBabylon = dictionary.gitDictFileMatchesSource(githubRepo = githubRepo, outputType = "slob")
+        val slobFileMatchesBabylon = dictionary.babylonFile.isDefined && dictionary.gitDictFileMatchesSource(sourceFile = dictionary.babylonFile.get, githubRepo = githubRepo, outputType = "slob")
         if (!slobFileMatchesBabylon || overwrite) {
-          dictionary.makeSlobFromStardict(timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath))
+          var timestamp: Option[String] = None
+          if (dictionary.babylonFile.isDefined) {
+            timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath)
+          }
+          dictionary.makeSlobFromStardict(timestamp = timestamp)
           tarProcessor.writeFilesListMd(mdPath = dictionary.getOutputListFile(outputType = "slob").getCanonicalPath, urlBase = baseUrl.replaceAll("/tars", "/slobs"), ext = "slob")
         } else {
           log info (s"Slob file for ${dictionary.name} is not outdated. Not overwriting.")
