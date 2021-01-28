@@ -4,9 +4,7 @@ import java.io.File
 
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.Utils
-import sanskrit_coders.Utils.appendToStringTillLimit
 import sanskritnlp.dictionary.{StardictFolder, babylonTools}
-import stardict_sanskrit.babylonProcessor.log
 
 import scala.sys.process._
 
@@ -27,12 +25,8 @@ class DictionaryFolder(val name: String) {
   var tarFile: Option[File] = None
   var slobFile: Option[File] = None
 
-  def this(dirFileIn: java.io.File, entryFilesDirIn: java.io.File = null) = {
-    this(dirFileIn.getName)
-    dirFile = dirFileIn
-    stardictFolder = new StardictFolder(dirFileIn=dirFileIn)
-    entryFilesDir = entryFilesDirIn
-    dirName = dirFile.getName.replaceAll(".*/", "")
+  def updateFileVars(): Unit = {
+    stardictFolder = new StardictFolder(dirFileIn=dirFile)
     babylonFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.babylon"))
     babylonFinalFile = dirFile.listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.babylon_final"))
 
@@ -42,6 +36,14 @@ class DictionaryFolder(val name: String) {
     if (getOutputDirFile("slob").exists) {
       tarFile = getOutputDirFile("slob").listFiles.map(_.getCanonicalFile).find(_.getName.matches(s".*/?${dirName}.*.slob"))
     }
+  }
+  
+  def this(dirFileIn: java.io.File, entryFilesDirIn: java.io.File = null) = {
+    this(dirFileIn.getName)
+    dirFile = dirFileIn
+    entryFilesDir = entryFilesDirIn
+    dirName = dirFile.getName.replaceAll(".*/", "")
+    updateFileVars()
     log debug toString
   }
 
@@ -123,6 +125,7 @@ class DictionaryFolder(val name: String) {
     if (stardictFolder.dictFile.nonEmpty) {
       s"dictzip ${stardictFolder.dictFile.get.getCanonicalPath}".!
     }
+    updateFileVars()
   }
 
   def makeSlobFromBabylonFile(timestamp: Option[String] = None): AnyVal = {
@@ -141,6 +144,7 @@ class DictionaryFolder(val name: String) {
     log info ("stdout excerpt: \n" + stdout)
     log info ("stderr excerpt: \n" + stderr)
     setSizeHint(fileObj = slobFile, timestamp = timestamp)
+    updateFileVars()
   }
 
 
@@ -156,6 +160,7 @@ class DictionaryFolder(val name: String) {
     log info ("stdout excerpt: \n" + stdout)
     log info ("stderr excerpt: \n" + stderr)
     setSizeHint(fileObj = slobFile, timestamp = timestamp)
+    updateFileVars()
   }
 
   def delete_large_intermediate_files(): Unit = {
@@ -198,7 +203,7 @@ class DictionaryFolder(val name: String) {
     log info command
     command.!
     setSizeHint(fileObj = targetTarFile, timestamp = timestamp)
-
+    updateFileVars()
   }
 
   def setSizeHint(fileObj: File, timestamp: Option[String] = None): Unit = {
