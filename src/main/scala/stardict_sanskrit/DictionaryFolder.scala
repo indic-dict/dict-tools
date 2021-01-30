@@ -87,7 +87,7 @@ class DictionaryFolder(val name: String) {
     val babylonUpdateTimestamp = githubRepo.getGithubUpdateTime(filePath = sourceFile.getAbsolutePath, branch = sourceFileBranch)
     if (babylonUpdateTimestamp.isDefined) {
       val gitFileTimestamp = githubRepo.getFileNameTimestampFromGithub(fileName = this.name, dirPath = this.getOutputDirFile(outputType = outputType).getAbsolutePath)
-      log debug(s"babylon: ${babylonUpdateTimestamp}, git file: ${gitFileTimestamp}")
+      log debug(s"babylon: ${babylonUpdateTimestamp}, git file: ${gitFileTimestamp}, sourceFIle: ${sourceFile}")
       return babylonUpdateTimestamp == gitFileTimestamp
     } else {
       return false

@@ -80,6 +80,8 @@ object batchProcessor extends BatchProcessor {
     log info "=======================Full build from source to slob."
     dictionaries.foreach(dictionary => {
       var makeSlob = true
+      log info (s"Want to make slob file for ${dictionary.name}.")
+      log debug dictionary.toString
       if (dictionary.babylonFile.isDefined) {
         val slobFileMatchesBabylon = dictionary.gitDictFileMatchesSource(sourceFile = dictionary.babylonFile.get, githubRepo = githubRepo, outputType = "slob")
         if (slobFileMatchesBabylon && !overwrite) {
@@ -91,18 +93,18 @@ object batchProcessor extends BatchProcessor {
       } else {
         if (!dictionary.stardictFolder.ifoFile.isDefined) {
           makeSlob = false
-          log info("No babylon. No ifo. No slob.")
+          log info(s"No babylon. No ifo. No slob for ${dictionary.name}.")
         }
       }
       if (!makeSlob) {
-        log info("Not making a new slob.")
+        log info(s"Not making a new slob for  ${dictionary.name}.")
         return false
       }
       if (dictionary.babylonFile.isDefined && dictionary.stardictFolder.ifoFile.isEmpty) {
         dictionary.makeStardictFromBabylonFile(babylon_binary = babylonBinary)
       }
       if (dictionary.stardictFolder.ifoFile.isDefined) {
-        log info "Stardict to slob."
+        log info s"Stardict to slob for  ${dictionary.name}."
         var timestamp: Option[String] = None
         if (dictionary.babylonFile.isDefined) {
           timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath)
@@ -136,6 +138,6 @@ object batchProcessor extends BatchProcessor {
 //      makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = s"https://github.com/indic-dict/stardict-sanskrit/raw/gh-pages/${from}-head/${to}-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
       makeSlobs(dictPattern = ".*", babylonBinary = "stardict-babylon", baseUrl = s"https://github.com/indic-dict/stardict-sanskrit/raw/gh-pages/${from}-head/${to}-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
     }
-    sanskritTest()
+    sanskritTest(from = "sa", to = "other-indic")
   }
 }

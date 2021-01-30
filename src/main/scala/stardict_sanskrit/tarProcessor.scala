@@ -27,7 +27,7 @@ object tarProcessor extends BatchProcessor {
     }
     val localArchiveUrls = localArchives.map(x => s"${urlBaseFinal}/${x.getName.replaceAll(".*/", "")}")
     ( localArchiveUrls.toList ::: uploadedArchives).sorted.foreach(x => {
-      destination.println(x)
+      destination.println(x + "  ")
     })
     destination.close()
   }
