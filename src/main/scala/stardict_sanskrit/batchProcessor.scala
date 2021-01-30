@@ -22,6 +22,7 @@ object batchProcessor extends BatchProcessor {
     val githubRepo = GithubRepo.fromUrl(url = tarBaseUrl, githubToken = githubToken)
     log info "=======================Full build from source to stardict tar."
     dictionaries.foreach(dictionary => {
+      log info (s"Want to make tar file for ${dictionary.name}.")
       if (dictionary.babylonFile.isDefined) {
         val tarFileMatchesBabylon = dictionary.gitDictFileMatchesSource(githubRepo = githubRepo, outputType = "tar")
         if (!tarFileMatchesBabylon || overwrite) {
@@ -98,20 +99,20 @@ object batchProcessor extends BatchProcessor {
       }
       if (!makeSlob) {
         log info(s"Not making a new slob for  ${dictionary.name}.")
-        return false
-      }
-      if (dictionary.babylonFile.isDefined && dictionary.stardictFolder.ifoFile.isEmpty) {
-        dictionary.makeStardictFromBabylonFile(babylon_binary = babylonBinary)
-      }
-      if (dictionary.stardictFolder.ifoFile.isDefined) {
-        log info s"Stardict to slob for  ${dictionary.name}."
-        var timestamp: Option[String] = None
-        if (dictionary.babylonFile.isDefined) {
-          timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath)
+      } else{
+        if (dictionary.babylonFile.isDefined && dictionary.stardictFolder.ifoFile.isEmpty) {
+          dictionary.makeStardictFromBabylonFile(babylon_binary = babylonBinary)
         }
-        dictionary.makeSlobFromStardict(timestamp = timestamp)
-        tarProcessor.writeFilesListMd(mdPath = dictionary.getOutputListFile(outputType = "slob").getCanonicalPath, urlBase = baseUrl.replaceAll("/tars", "/slobs"), ext = "slob")
+        if (dictionary.stardictFolder.ifoFile.isDefined) {
+          log info s"Stardict to slob for  ${dictionary.name}."
+          var timestamp: Option[String] = None
+          if (dictionary.babylonFile.isDefined) {
+            timestamp = githubRepo.getGithubUpdateTime(filePath = dictionary.babylonFile.get.getAbsolutePath)
+          }
+          dictionary.makeSlobFromStardict(timestamp = timestamp)
+          tarProcessor.writeFilesListMd(mdPath = dictionary.getOutputListFile(outputType = "slob").getCanonicalPath, urlBase = baseUrl.replaceAll("/tars", "/slobs"), ext = "slob")
         }
+      }
     })
   }
 
