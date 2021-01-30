@@ -23,6 +23,7 @@ object batchProcessor extends BatchProcessor {
     log info "=======================Full build from source to stardict tar."
     dictionaries.foreach(dictionary => {
       log info (s"Want to make tar file for ${dictionary.name}.")
+
       if (dictionary.babylonFile.isDefined) {
         val tarFileMatchesBabylon = dictionary.gitDictFileMatchesSource(githubRepo = githubRepo, outputType = "tar")
         if (!tarFileMatchesBabylon || overwrite) {
