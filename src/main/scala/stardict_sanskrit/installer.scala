@@ -42,7 +42,7 @@ case class DictIndex(indexUrl: String, downloadPathPrefix: String, var downloadP
   downloadPath = Paths.get(downloadPathPrefix, indexUrl.replaceAllLiterally("https://raw.githubusercontent.com/", "").replaceAllLiterally("master/", "").replaceAllLiterally("tars/tars.MD", "")).toString
   dictTarUrls = DictIndex.getUrlsFromIndexMd(url=indexUrl).toList
 
-  val dictionaries: List[DictInfo] = dictTarUrls.map(dictTarUrl => DictInfo(dictTarUrl=dictTarUrl, destinationFolder = downloadPath))
+  val dictionaries: List[DictInfo] = dictTarUrls.map(dictTarUrl => DictInfo(dictTarUrl=dictTarUrl.trim, destinationFolder = downloadPath))
 //
 //  override def toString: String = s"indexUrl: ${indexUrl}\ndownloadPath: ${downloadPath}\ndictTarUrls: ${dictTarUrls.mkString("\n")}"
 }
