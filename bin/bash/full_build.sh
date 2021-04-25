@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# -e exits on error, -u errors on undefined variables, and -o (for option) pipefail exits on command pipe failures
+set -euxo pipefail
+
 # This is invoked from travis.yml scripts to autobuild dict packages for distribution.
 
 # STARDICT_SANSKRIT_SCALA=`dirname $0`
