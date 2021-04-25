@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory
   * Example invocation:
   * java -jar bin/artifacts/dict-tools.jar install --destinationPath=/home/vvasuki/sanskrit-coders/stardict-dicts-installed/ --dictRepoIndexUrl=https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md
   */
-case class InstallAruments()
 case class CommandConfig(mode: Option[String]=None,
                          destinationPath: Option[String]=None, 
                          dictRepoIndexUrl: Option[String]=None,
@@ -137,17 +136,17 @@ object commandInterface {
     }
     log.info(args.mkString(" "))
     parser.parse(args, CommandConfig()) match {
-      case Some(commandConfig) => {
+      case Some(commandConfig) => 
         log.debug(commandConfig.toString)
         commandConfig.mode.get match {
           case "install" => installer.install(destination = commandConfig.destinationPath.get, indexOfIndicesUrl = commandConfig.dictRepoIndexUrl.get, overwrite = commandConfig.overwrite.getOrElse(false))
           case "makeIndicStardictTar" => batchProcessor.makeIndicStardictTar(dictPattern = commandConfig.dictPattern.get, babylonBinary =  commandConfig.babylonBinary.get, overwrite = commandConfig.overwrite.getOrElse(false), tarBaseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken)
             batchProcessor.makeSlobs(dictPattern = commandConfig.dictPattern.get, overwrite = commandConfig.overwrite.getOrElse(false), baseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken, babylonBinary = commandConfig.babylonBinary.get)          
           case unknownCommand => log.error(s"Do not recognize $unknownCommand")
-        }
-      }
-      case None =>
+        } // successful parse case ends
+      case _ =>
         log.error("Failed to parse args")
+        throw new IllegalArgumentException
     }
     log.info("Done with : " + args.mkString(" "))
   }
