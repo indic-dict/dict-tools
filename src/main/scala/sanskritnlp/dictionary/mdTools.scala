@@ -10,7 +10,11 @@ object mdTools {
         filePath = new File(filePath, word.substring(0, i+1))
       }
     })
-    filePath = new File(filePath, word + ".md")
+    var truncatedWord = word
+    if (word.length > 50) {
+      truncatedWord = word.substring(0, 51)
+    }
+    filePath = new File(filePath, truncatedWord + ".md")
     return filePath
   }
 }
