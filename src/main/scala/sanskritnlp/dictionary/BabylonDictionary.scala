@@ -120,7 +120,7 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
     makeWordToMeaningsMap(headwordPattern = headwordPattern)
     wordToMeanings.foreach {case (word, meaningList) =>
       val filePath = mdTools.getFilePath(destPath=destPath, prefixPathDepth=prefixPathDepth, word=word)
-      Files.createDirectories(Paths.get(filePath.toString))
+      Files.createDirectories(Paths.get(filePath.toString).getParent)
       val writer = new PrintWriter(filePath)
       writer.println(word)
       writer.println(entrySeparator)
@@ -131,7 +131,7 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
       writer.close()
     }
     val indexFile = new File(destPath, "_index.md")
-    Files.createDirectories(Paths.get(indexFile.toString))
+    Files.createDirectories(Paths.get(indexFile.toString).getParent)
     val writer = new PrintWriter(indexFile)
     writer.println(s"dictName=${dictName}\n\nstringsDefined = ${wordToMeanings.size}")
     writer.close()
