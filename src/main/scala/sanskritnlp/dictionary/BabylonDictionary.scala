@@ -1,9 +1,9 @@
 package sanskritnlp.dictionary
 
 import java.io.{File, PrintWriter}
-
 import org.slf4j.LoggerFactory
 
+import java.nio.file.{Files, Paths}
 import scala.collection.mutable.ListBuffer
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
@@ -97,13 +97,17 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
 
   }
 
-  def makeWordToMeaningsMap(headword_pattern: String = ".+") = {
+  def makeWordToMeaningsMap(headwordPattern: String = ".+"): Unit = {
+    if (wordToMeanings.size > 0) {
+      log info (s"Not overwriting wordToMeaning map for $dict_name")
+      return
+    }
     log info s"Making wordToMeanings for $dict_name"
     while (hasNext()) {
       val (headwords, meaning) = next()
       // log.info(s"word_index : $word_index")
-      val filtered_headwords = headwords.filter(_ matches headword_pattern)
-      filtered_headwords.foreach(word => {
+      val filteredHeadwords = headwords.filter(_ matches headwordPattern)
+      filteredHeadwords.foreach(word => {
         val meaningList = wordToMeanings.getOrElse(word, ListBuffer[String]())
         meaningList += meaning
         wordToMeanings += (word -> meaningList)
@@ -111,6 +115,21 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
     }
   }
 
+  def dumpPerHeadwordMarkdownFiles(headwordPattern: String = ".+", destPath: String, prefixPathDepth: Int = 4) = {
+    makeWordToMeaningsMap(headwordPattern = headwordPattern)
+    wordToMeanings.foreach {case (word, meaningList) =>
+      val filePath = mdTools.getFilePath(destPath=destPath, prefixPathDepth=prefixPathDepth, word=word)
+      Files.createDirectories(Paths.get(filePath.toString))
+      val writer = new PrintWriter(filePath)
+      writer.println(word)
+      writer.println("----------")
+      meaningList.foreach(meaning => {
+        writer.println(meaning)
+        writer.println("----------")
+      })
+    }
+  }
+  
   override def toString(): String = s"$name_in : $fileLocation"
 }
 
