@@ -98,6 +98,7 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
   }
 
   def makeWordToMeaningsMap(headwordPattern: String = ".+"): Unit = {
+    fromFile(fileLocation)
     if (wordToMeanings.size > 0) {
       log info (s"Not overwriting wordToMeaning map for $dictName")
       return
