@@ -3,8 +3,9 @@ package stardict_sanskrit
 import com.typesafe.config.ConfigFactory
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.Utils
-import sanskritnlp.dictionary.babylonTools
+import sanskritnlp.dictionary.{BabylonDictionary, babylonTools}
 
+import java.io.File
 import scala.io.Source
 
 object batchProcessor extends BatchProcessor {
@@ -60,6 +61,30 @@ object batchProcessor extends BatchProcessor {
 
   }
 
+  def makePerHeadwordMdFiles(dictPattern: String = ".*", tarBaseUrl: String, githubToken: Option[String] = None, overwrite: Boolean = false, baseDir: String = ".") = {
+    var dictionaries = this.getMatchingDictionaries(dictPattern, baseDir = baseDir)
+    val githubRepo = GithubRepo.fromUrl(url = tarBaseUrl, githubToken = githubToken)
+    log info "=======================Full build from source to stardict tar."
+    dictionaries.foreach(dictionary => {
+      log info (s"Want to make tar file for ${dictionary.name}.")
+
+      if (dictionary.babylonFile.isDefined) {
+        val destPath = new File(dictionary.getOutputDirFile("md"), dictionary.name)
+        val mdFileMatchesBabylon = dictionary.downstreamFileNewerThanSource(githubRepo = githubRepo, sourceFile = dictionary.babylonFile.get, destFilePath = new File(destPath, "_index.md"))
+        if (!mdFileMatchesBabylon || overwrite) {
+        } else {
+          log info (s"MD file for ${dictionary.name} is not outdated. Not overwriting. But regenerating anyway.")
+          val babylonDictionary = new BabylonDictionary(nameIn = dictionary.name, sourceIn = dictionary.babylonFile.get.toString, headLanguage = "UNK")
+          babylonDictionary.dumpPerHeadwordMarkdownFiles(destPath = destPath.toString)
+        }
+      } else {
+        log.info(s"**** No babylon file in ${dictionary.dirName} - skipping.")
+      }
+    })
+
+  }
+
+
   def hasPyglossary: Boolean = {
     try {
       val (status, stdout, stderr) = Utils.runCommandLimitOutput("pyglossary --help")
@@ -72,7 +97,7 @@ object batchProcessor extends BatchProcessor {
     return true
   }
 
-  /** Create slob files (for use with aard) from stardict files.
+  /** Create slob files (for use with aard) from stardict and babylon files.
    * 
    * @param dictPattern
    * @param babylonBinary (used to make stardict files if needed).

@@ -9,15 +9,15 @@ import scala.collection.immutable.HashMap
 import scala.collection.mutable
 import scala.io.{BufferedSource, Source}
 
-class BabylonDictionary(name_in: String, source_in: String = "", head_language: String) extends Iterator[(Seq[String], String)] {
+class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: String) extends Iterator[(Seq[String], String)] {
   var wordToLocations: HashMap[String, ListBuffer[Int]] = new HashMap[String, ListBuffer[Int]]
   var wordToMeanings = new HashMap[String, ListBuffer[String]]
   val log = LoggerFactory.getLogger(this.getClass)
 
-  val dict_name = name_in
-  val source = source_in
+  val dictName = nameIn
+  val source = sourceIn
 
-  var words_taken = 0
+  var wordsTaken = 0
 
   var fileLocation = ""
   var linesIter: Iterator[String] = null
@@ -26,7 +26,7 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
   def fromFile(infileStr: String) = {
     // log info s"Reading $infileStr for $dict_name"
     fileLocation = infileStr
-    words_taken = 0
+    wordsTaken = 0
     src = Source.fromFile(infileStr, "utf8")
     def isHeadLine(x:String) = x.startsWith("#") || x.trim.isEmpty
     linesIter = src.getLines.dropWhile(isHeadLine)
@@ -38,7 +38,7 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
 
   //  java.nio.charset.MalformedInputException: Input length = 1 implies bad character in file.
   override def next(): (Seq[String], String) = {
-    words_taken = words_taken + 1
+    wordsTaken = wordsTaken + 1
     val headwords = linesIter.next().split('|').toSeq
 //    log debug(headwords.mkString("|"))
 //    log debug(linesIter.hasNext.toString)
@@ -51,7 +51,7 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
 
 
   def makeWordToLocationMap(headword_pattern: String = ".+") = {
-    log info s"Making wordToLocationMap for $dict_name"
+    log info s"Making wordToLocationMap for $dictName"
     fromFile(fileLocation)
     while (hasNext()) {
       val (headwords, meaning) = next()
@@ -59,7 +59,7 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
       val filtered_headwords = headwords.filter(_ matches headword_pattern)
       filtered_headwords.foreach(word => {
         val locus_list = wordToLocations.getOrElse(word, ListBuffer[Int]())
-        locus_list += words_taken
+        locus_list += wordsTaken
         wordToLocations += (word -> locus_list)
       })
     }
@@ -99,10 +99,10 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
 
   def makeWordToMeaningsMap(headwordPattern: String = ".+"): Unit = {
     if (wordToMeanings.size > 0) {
-      log info (s"Not overwriting wordToMeaning map for $dict_name")
+      log info (s"Not overwriting wordToMeaning map for $dictName")
       return
     }
-    log info s"Making wordToMeanings for $dict_name"
+    log info s"Making wordToMeanings for $dictName"
     while (hasNext()) {
       val (headwords, meaning) = next()
       // log.info(s"word_index : $word_index")
@@ -115,29 +115,37 @@ class BabylonDictionary(name_in: String, source_in: String = "", head_language: 
     }
   }
 
-  def dumpPerHeadwordMarkdownFiles(headwordPattern: String = ".+", destPath: String, prefixPathDepth: Int = 4) = {
+  def dumpPerHeadwordMarkdownFiles(headwordPattern: String = ".+", destPath: String, prefixPathDepth: Int = 4, entrySeparator: String ="----------") = {
+    log info s"Creating markdown files at $destPath"
     makeWordToMeaningsMap(headwordPattern = headwordPattern)
     wordToMeanings.foreach {case (word, meaningList) =>
       val filePath = mdTools.getFilePath(destPath=destPath, prefixPathDepth=prefixPathDepth, word=word)
       Files.createDirectories(Paths.get(filePath.toString))
       val writer = new PrintWriter(filePath)
       writer.println(word)
-      writer.println("----------")
+      writer.println(entrySeparator)
       meaningList.foreach(meaning => {
         writer.println(meaning)
-        writer.println("----------")
+        writer.println(entrySeparator)
       })
+      writer.close()
     }
+    val indexFile = new File(destPath, "_index.md")
+    Files.createDirectories(Paths.get(indexFile.toString))
+    val writer = new PrintWriter(indexFile)
+    writer.println(s"dictName=${dictName}\n\nstringsDefined = ${wordToMeanings.size}")
+    writer.close()
+    
   }
   
-  override def toString(): String = s"$name_in : $fileLocation"
+  override def toString(): String = s"$nameIn : $fileLocation"
 }
 
 object babylonDictTest {
   val log = LoggerFactory.getLogger(this.getClass)
 
   def kalpadruma_test: Unit = {
-    val kalpadruma = new BabylonDictionary(name_in = "कल्पद्रुमः", source_in = "http://www.sanskrit-lexicon.uni-koeln.de/scans/csldoc/contrib/index.html", head_language = "sa")
+    val kalpadruma = new BabylonDictionary(nameIn = "कल्पद्रुमः", sourceIn = "http://www.sanskrit-lexicon.uni-koeln.de/scans/csldoc/contrib/index.html", headLanguage = "sa")
     kalpadruma.fromFile(infileStr = "/home/vvasuki/stardict-sanskrit/sa-head/kalpadruma-sa/kalpadruma-sa.babylon_final")
     log info kalpadruma.getMeanings("इ").mkString("\n\n")
     log info kalpadruma.getMeanings("अ").mkString("\n\n")

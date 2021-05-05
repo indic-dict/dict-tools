@@ -82,6 +82,14 @@ class DictionaryFolder(val name: String) {
     stardictFolder.ifoFile.isDefined && (stardictFolder.ifoFile.get.lastModified > babFile.lastModified)
   }
   
+  def downstreamFileNewerThanSource(githubRepo: GithubRepo, sourceFile: File=babylonFile.get, sourceFileBranch: Option[String]=None, destFilePath: File, destFileBranch: Option[String]=None):Boolean = {
+    val sourceFileTimestamp = githubRepo.getGithubUpdateTime(filePath = sourceFile.getAbsolutePath, branch = sourceFileBranch)
+    val destFileTimestamp = githubRepo.getGithubUpdateTime(filePath = destFilePath.getAbsolutePath, branch = destFileBranch)
+    if (sourceFileTimestamp.isDefined) {
+      return destFileTimestamp.isDefined && destFileTimestamp.get >= sourceFileTimestamp.get
+    }
+    return false
+  }
 
   def gitDictFileMatchesSource(githubRepo: GithubRepo, sourceFile: File=babylonFile.get, sourceFileBranch: Option[String]=None, outputType: String): Boolean = {
     val babylonUpdateTimestamp = githubRepo.getGithubUpdateTime(filePath = sourceFile.getAbsolutePath, branch = sourceFileBranch)
