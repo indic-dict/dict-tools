@@ -15,15 +15,14 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
   val log = LoggerFactory.getLogger(this.getClass)
 
   val dictName = nameIn
-  val source = sourceIn
 
   var wordsTaken = 0
 
-  var fileLocation = ""
+  var fileLocation = sourceIn
   var linesIter: Iterator[String] = null
   var src: Source = null
 
-  def fromFile(infileStr: String) = {
+  def readFile(infileStr: String=fileLocation) = {
     // log info s"Reading $infileStr for $dict_name"
     fileLocation = infileStr
     wordsTaken = 0
@@ -52,7 +51,7 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
 
   def makeWordToLocationMap(headword_pattern: String = ".+") = {
     log info s"Making wordToLocationMap for $dictName"
-    fromFile(fileLocation)
+    readFile()
     while (hasNext()) {
       val (headwords, meaning) = next()
       // log.info(s"word_index : $word_index")
@@ -63,13 +62,13 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
         wordToLocations += (word -> locus_list)
       })
     }
-    fromFile(fileLocation)
+    readFile(fileLocation)
   }
 
   def getMeaningAtIndex(locus: Int): String = {
 //    log info(s"locus: $locus")
 //    log info(s"words_taken: $words_taken")
-    fromFile(fileLocation)
+    readFile()
     take(locus - 1)
     val (_, meaning_line) = next()
     return meaning_line
@@ -98,7 +97,7 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
   }
 
   def makeWordToMeaningsMap(headwordPattern: String = ".+"): Unit = {
-    fromFile(fileLocation)
+    readFile()
     if (wordToMeanings.size > 0) {
       log info (s"Not overwriting wordToMeaning map for $dictName")
       return
@@ -117,7 +116,7 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
   }
 
   def dumpPerHeadwordMarkdownFiles(headwordPattern: String = ".+", destPath: String, prefixPathDepth: Int = 4, entrySeparator: String ="----------") = {
-    log info s"Creating markdown files at $destPath"
+    log info s"Creating markdown files at $destPath from $fileLocation"
     makeWordToMeaningsMap(headwordPattern = headwordPattern)
     wordToMeanings.foreach {case (word, meaningList) =>
       val filePath = mdTools.getFilePath(destPath=destPath, prefixPathDepth=prefixPathDepth, word=word)
@@ -147,7 +146,7 @@ object babylonDictTest {
 
   def kalpadruma_test: Unit = {
     val kalpadruma = new BabylonDictionary(nameIn = "कल्पद्रुमः", sourceIn = "http://www.sanskrit-lexicon.uni-koeln.de/scans/csldoc/contrib/index.html", headLanguage = "sa")
-    kalpadruma.fromFile(infileStr = "/home/vvasuki/stardict-sanskrit/sa-head/kalpadruma-sa/kalpadruma-sa.babylon_final")
+    kalpadruma.readFile(infileStr = "/home/vvasuki/stardict-sanskrit/sa-head/kalpadruma-sa/kalpadruma-sa.babylon_final")
     log info kalpadruma.getMeanings("इ").mkString("\n\n")
     log info kalpadruma.getMeanings("अ").mkString("\n\n")
     log info kalpadruma.getMeanings("उ").mkString("\n\n")

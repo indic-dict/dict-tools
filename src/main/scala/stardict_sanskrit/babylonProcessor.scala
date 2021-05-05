@@ -20,7 +20,7 @@ object babylonProcessor extends BatchProcessor{
     val babylonFiles = getRecursiveSetOfDictDirs(basePaths=basePaths).map(_.getFinalBabylonFile).filterNot(_ == null)
     val babylonDicts = babylonFiles.map(x => {
       val dict = new BabylonDictionary(nameIn = x.getName, headLanguage = "")
-      dict.fromFile(x.getCanonicalPath)
+      dict.readFile(x.getCanonicalPath)
       dict
     })
     log info s"Got ${babylonDicts.size} babylon files. And they are: \n${babylonDicts.mkString("\n")}"
