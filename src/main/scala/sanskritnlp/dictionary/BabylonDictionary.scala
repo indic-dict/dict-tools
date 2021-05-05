@@ -38,9 +38,16 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
   //  java.nio.charset.MalformedInputException: Input length = 1 implies bad character in file.
   override def next(): (Seq[String], String) = {
     wordsTaken = wordsTaken + 1
-    val headwords = linesIter.next().split('|').toSeq
+    val headwordsLine = linesIter.next()
+    if (headwordsLine.trim.isEmpty) {
+      return (Seq(), null)
+    }
+    val headwords = headwordsLine.split('|').toSeq
 //    log debug(headwords.mkString("|"))
 //    log debug(linesIter.hasNext.toString)
+    if (!linesIter.hasNext) {
+      return (headwords, null)
+    }
     val entry = linesIter.next
 //    log debug(entry)
     val returnTuple = (headwords, entry)
@@ -103,15 +110,23 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
       return
     }
     log info s"Making wordToMeanings for $dictName"
-    while (hasNext()) {
-      val (headwords, meaning) = next()
-      // log.info(s"word_index : $word_index")
-      val filteredHeadwords = headwords.filter(_ matches headwordPattern)
-      filteredHeadwords.foreach(word => {
-        val meaningList = wordToMeanings.getOrElse(word, ListBuffer[String]())
-        meaningList += meaning
-        wordToMeanings += (word -> meaningList)
-      })
+    import scala.util.control.Breaks._
+
+    breakable {
+      while (hasNext()) {
+        val (headwords, meaning) = next()
+        if (headwords.size == 0 || meaning == null) {
+          log warn (s"Found an illegal entry - $headwords and meaning: $meaning")
+          break()
+        }
+        // log.info(s"word_index : $word_index")
+        val filteredHeadwords = headwords.filter(_ matches headwordPattern)
+        filteredHeadwords.foreach(word => {
+          val meaningList = wordToMeanings.getOrElse(word, ListBuffer[String]())
+          meaningList += meaning
+          wordToMeanings += (word -> meaningList)
+        })
+      }
     }
   }
 
