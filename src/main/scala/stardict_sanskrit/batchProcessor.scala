@@ -71,7 +71,16 @@ object batchProcessor extends BatchProcessor {
     } 
     return true
   }
-  
+
+  /** Create slob files (for use with aard) from stardict files.
+   * 
+   * @param dictPattern
+   * @param babylonBinary (used to make stardict files if needed).
+   * @param baseUrl
+   * @param githubToken
+   * @param overwrite
+   * @param baseDir
+   */
   def makeSlobs(dictPattern: String = ".*", babylonBinary: String, baseUrl: String, githubToken: Option[String] = None, overwrite: Boolean = false, baseDir: String = "."): Unit = {
     if (!hasPyglossary) {
       log warn("pyglossary not installed. Returning")

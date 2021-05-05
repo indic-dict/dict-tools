@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
   , "com.github.scopt" % "scopt_2.12" % "4.0.0-RC2"
   , "com.ibm.icu" % "icu4j" % "68.2"
   , "org.tukaani" % "xz" % "1.0"
+  ,"com.github.david-bouyssie" % "sqlite4s_native0.4_2.13" % "0.4.0"
 ).map(_.exclude("org.slf4j", "*"))
 
 //insert one without exclusion

@@ -1,16 +1,11 @@
 package stardict_sanskrit
 
-import java.io.{File, PrintWriter}
-
 import org.slf4j.{Logger, LoggerFactory}
-import sanskritnlp.dictionary.{BabylonDictionary, babylonTools}
-import sanskritnlp.transliteration.roman.iast
-import sanskritnlp.transliteration.transliterator
-import sanskritnlp.vyAkaraNa.devanAgarI
+import sanskritnlp.dictionary.BabylonDictionary
 
+import java.io.{File, PrintWriter}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.io.Source
 
 /**
   * Processes babylon files en masse in various ways.
