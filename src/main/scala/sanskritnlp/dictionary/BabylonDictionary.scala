@@ -137,8 +137,7 @@ class BabylonDictionary(nameIn: String, sourceIn: String = "", headLanguage: Str
       val filePath = mdTools.getFilePath(destPath=destPath, prefixPathDepth=prefixPathDepth, word=word)
       Files.createDirectories(Paths.get(filePath.toString).getParent)
       val writer = new PrintWriter(filePath)
-      writer.println(word)
-      writer.println(entrySeparator)
+      writer.println(s"""---\nheadword: "$word"\n---\n\n""")
       meaningList.foreach(meaning => {
         writer.println(meaning)
         writer.println(entrySeparator)

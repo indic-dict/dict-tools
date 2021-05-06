@@ -188,6 +188,10 @@ class DictionaryFolder(val name: String) {
   def getOutputDirFile(outputType: String) = outputType match {
     case _ => new File(dirFile.getParentFile.getCanonicalPath, s"/${outputType}s")
   }
+  
+  def getPathFromBase(baseDir: String, newBaseDir: String = ""): File = {
+    return new File(dirFile.getCanonicalPath.replace(baseDir, newBaseDir))
+  }
 
   def getOutputListFile(outputType: String) = outputType match {
     case _ => new File(this.getOutputDirFile(outputType = outputType).getCanonicalPath, s"/${outputType}s.MD")

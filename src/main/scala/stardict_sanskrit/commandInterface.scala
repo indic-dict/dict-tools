@@ -12,8 +12,7 @@ case class CommandConfig(mode: Option[String]=None,
                          dictPattern: Option[String]=None,
                          urlBase: Option[String]=None,
                          babylonBinary: Option[String]=None,
-                         entryFilesRootDir: Option[String]=None,
-                         dictionariesRootDir: Option[String]=None,
+                         sourcePath: Option[String]=None,
                          inputPaths: Option[String]=None,
                          githubToken: Option[String]=None,
                          overwrite: Option[Boolean]=None,
@@ -65,18 +64,15 @@ object commandInterface {
           opt[Boolean]("overwrite")
             .action((x, c) => c.copy(overwrite = Some(x))),
         )
-      cmd("makeEntryFiles")
-        .action((_, c) => c.copy(mode = Some("addStandardHeadwords")))
+      cmd("makePerHeadwordMdFiles")
+        .action((_, c) => c.copy(mode = Some("makePerHeadwordMdFiles")))
         .text("Make per-entry files.")
         .children(
-          opt[String]("dictPattern")
-            .action((x, c) => c.copy(dictPattern = Some(x)))
+          opt[String]("destinationPath")
+            .action((x, c) => c.copy(destinationPath = Some(x)))
             .required(),
-          opt[String]("entryFilesRootDir")
-            .action((x, c) => c.copy(dictPattern = Some(x)))
-            .required(),
-          opt[String]("dictionariesRootDir")
-            .action((x, c) => c.copy(dictPattern = Some(x)))
+          opt[String]("sourcePath")
+            .action((x, c) => c.copy(sourcePath = Some(x)))
             .required(),
           opt[Boolean]("overwrite")
             .action((x, c) => c.copy(overwrite = Some(x))),
@@ -144,6 +140,7 @@ object commandInterface {
             batchProcessor.makeSlobs(dictPattern = commandConfig.dictPattern.get, overwrite = commandConfig.overwrite.getOrElse(false), baseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken, babylonBinary = commandConfig.babylonBinary.get)
             // The below result in too slow pushes leading to failed builds like https://github.com/indic-dict/stardict-sanskrit/runs/2511181643.
 //            batchProcessor.makePerHeadwordMdFiles(dictPattern = commandConfig.dictPattern.get, tarBaseUrl =  commandConfig.urlBase.get, githubToken = commandConfig.githubToken)
+          case "makePerHeadwordMdFiles" => batchProcessor.makePerHeadwordMdFiles(sourceDir = commandConfig.sourcePath.get, destDir = commandConfig.destinationPath.get)
           case unknownCommand => log.error(s"Do not recognize $unknownCommand")
         } // successful parse case ends
       case _ =>

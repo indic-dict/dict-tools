@@ -61,21 +61,14 @@ object batchProcessor extends BatchProcessor {
 
   }
 
-  def makePerHeadwordMdFiles(dictPattern: String = ".*", tarBaseUrl: String, githubToken: Option[String] = None, overwrite: Boolean = false, baseDir: String = ".") = {
-    var dictionaries = this.getMatchingDictionaries(dictPattern, baseDir = baseDir)
-    val githubRepo = GithubRepo.fromUrl(url = tarBaseUrl, githubToken = githubToken)
+  def makePerHeadwordMdFiles(destDir: String, sourceDir: String = ".") = {
+    val dictionaries = this.getRecursiveSetOfDictDirs(basePaths = Seq(sourceDir))
     log info "=======================Full build from source to md files."
     dictionaries.foreach(dictionary => {
       log info (s"Want to make md files for ${dictionary.name}.")
 
       if (dictionary.babylonFile.isDefined) {
-        val destPath = new File(dictionary.getOutputDirFile("md"), dictionary.name)
-        val mdFileMatchesBabylon = dictionary.downstreamFileNewerThanSource(githubRepo = githubRepo, sourceFile = dictionary.babylonFile.get, destFilePath = new File(destPath, "_index.md"))
-        if (!mdFileMatchesBabylon || overwrite) {
-          log info (s"MD file for ${dictionary.name} is outdated.")
-        } else {
-          log info (s"MD file for ${dictionary.name} is not outdated. But regenerating anyway.")
-        }
+        val destPath = dictionary.getPathFromBase(baseDir = sourceDir, newBaseDir = destDir)
         val babylonDictionary = new BabylonDictionary(nameIn = dictionary.name, sourceIn = dictionary.babylonFile.get.toString, headLanguage = "UNK")
         babylonDictionary.dumpPerHeadwordMarkdownFiles(destPath = destPath.toString)
       } else {
