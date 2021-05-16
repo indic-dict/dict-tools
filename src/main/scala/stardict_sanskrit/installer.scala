@@ -1,9 +1,9 @@
 package stardict_sanskrit
 
 import akka.pattern.ask
+
 import java.nio.file.{Files, Paths}
 import java.util.concurrent.TimeUnit
-
 import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Status}
 import akka.http.scaladsl.Http
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, IOResult}
@@ -12,10 +12,10 @@ import sanskrit_coders.{RichHttpAkkaClient, Utils}
 import akka.http.scaladsl.model._
 import akka.util.Timeout
 import de.heikoseeberger.akkahttpjson4s.Json4sSupport.ShouldWritePretty.False
+
 import sys.process._
 import java.net.URL
-import java.io.File
-
+import java.io.{File, FileNotFoundException}
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import sanskritnlp.dictionary.StardictTar
@@ -48,10 +48,17 @@ case class DictIndex(indexUrl: String, downloadPathPrefix: String, var downloadP
 }
 
 object DictIndex {
+  private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   def getUrlsFromIndexMd(url: String): Array[String] = {
     import scala.io.Source
-    Source.fromURL(url).mkString.split("\n").map(_.replaceAll("[<>]", ""))
+    try {
+      Source.fromURL(url).mkString.split("\n").map(_.replaceAll("[<>]", ""))
+    } catch {
+      case e: FileNotFoundException => log.error(s"Could not get ${url}")
+        Array()
+    }
   }
+
   def recursiveListFiles(f: File): Array[File] = {
     if(f.exists()) {
       val these = f.listFiles
