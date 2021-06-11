@@ -80,7 +80,7 @@ class InstallerActor extends Actor with ActorLogging {
   private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpAkkaClient.httpClientWithRedirect(simpleClient)(context.system)
 
   def receive: PartialFunction[Any, Unit] = {
-    case (dict: DictInfo, overwrite: Boolean) => {
+    case (dict: DictInfo, dictFilterRegex: String, overwrite: Boolean) => {
       log.info(dict.toString)
       val destinationTarPath = Paths.get(dict.destinationFolder, dict.dictName, dict.tarFilename)
       val dictionaryFolder = new java.io.File(destinationTarPath.getParent.toString)
@@ -114,17 +114,16 @@ object installer {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   val system = ActorSystem("installerActorSystem")
 
-  def install(destination: String, indexOfIndicesUrl: String, overwrite:Boolean=false): Unit = {
+  def install(destination: String, indexOfIndicesUrl: String, dictFilterRegex:String=".*", overwrite:Boolean=false): Unit = {
     val indices = DictIndex.getUrlsFromIndexMd(indexOfIndicesUrl)
-    val dictionaries = indices.map(new DictIndex(_, downloadPathPrefix = destination)).flatMap(index => index.dictionaries)
-
+    val dictionaries = indices.map(new DictIndex(_, downloadPathPrefix = destination)).flatMap(index => index.dictionaries).filter(_.dictName.matches(dictFilterRegex))
     val installerActorRef = system.actorOf(Props[InstallerActor], "installerActor")
     // Actor ask timeout
     implicit val timeout: Timeout = Timeout(10, TimeUnit.MINUTES)
     import scala.concurrent.ExecutionContext.Implicits.global
 
     //    log.debug(indices.mkString(","))
-    val resultFutureList = dictionaries.map( dictionary =>  ask(installerActorRef, (dictionary, overwrite)) )
+    val resultFutureList = dictionaries.map( dictionary =>  ask(installerActorRef, (dictionary, dictFilterRegex, overwrite)) )
     val futureOfResults: Unit = Utils.getFutureOfTrys(resultFutureList). onComplete {
       case Success(resultList) =>
         log.debug(resultList.mkString("\n"))
