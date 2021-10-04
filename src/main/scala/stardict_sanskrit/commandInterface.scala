@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 
 /**
   * Example invocation:
-  * java -jar bin/artifacts/dict-tools.jar install --destinationPath=/home/vvasuki/sanskrit-coders/stardict-dicts-installed/ --dictRepoIndexUrl=https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md
+  * java -jar bin/artifacts/dict-tools.jar install --destinationPath=/home/vvasuki/sanskrit-coders/stardict-dicts-installed/ --dictRepoIndexUrl=https://raw.githubusercontent.com/indic-dict/stardict-index/master/dictionaryIndices.md
   */
 case class CommandConfig(mode: Option[String]=None,
                          destinationPath: Option[String]=None, 

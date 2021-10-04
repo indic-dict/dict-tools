@@ -39,7 +39,7 @@ object tarProcessor extends BatchProcessor {
 
   //noinspection AccessorLikeMethodIsUnit
   def getStats(): Unit = {
-    val indexIndexorum = "https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md"
+    val indexIndexorum = "https://raw.githubusercontent.com/indic-dict/stardict-index/master/dictionaryIndices.md"
     //noinspection SourceNotClosed
     val indexes = Source.fromURL(indexIndexorum).mkString.replaceAll("<|>","").split("\n")
     val counts = indexes.map(index => {

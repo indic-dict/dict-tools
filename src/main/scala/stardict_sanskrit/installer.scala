@@ -142,6 +142,6 @@ object installer {
   }
 
   def main(args: Array[String]): Unit = {
-    install(destination = "/home/vvasuki/indic-dict/stardict-dicts-installed/", indexOfIndicesUrl = "https://raw.githubusercontent.com/sanskrit-coders/stardict-dictionary-updater/master/dictionaryIndices.md", overwrite=false)
+    install(destination = "/home/vvasuki/indic-dict/stardict-dicts-installed/", indexOfIndicesUrl = "https://raw.githubusercontent.com/indic-dict/stardict-index/master/dictionaryIndices.md", overwrite=false)
   }
 }
