@@ -17,4 +17,5 @@ fi
 
 # Set default value
 GITHUB_TOKEN=${3:-NONE}
-java -cp "$PATH_TO_JARS/bin/artifacts/dict-tools.jar" stardict_sanskrit.commandInterface makeIndicStardictTar  --urlBase=$1 --${2/DICTS=/dictPattern=}  --babylonBinary=$BABYLON_BINARY --${GITHUB_TOKEN/GITHUB_TOKEN=/githubToken=}
+OVERWRITE=${4:-overwrite=false}
+java -cp "$PATH_TO_JARS/bin/artifacts/dict-tools.jar" stardict_sanskrit.commandInterface makeIndicStardictTar  --urlBase=$1 --${2/DICTS=/dictPattern=}  --babylonBinary=$BABYLON_BINARY --${GITHUB_TOKEN/GITHUB_TOKEN=/githubToken=} --${OVERWRITE}
