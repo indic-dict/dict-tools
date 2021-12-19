@@ -30,18 +30,25 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
     val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = dirPath)), ref = branch).exec[Future, HttpResponse[String]]()
     return Await.result(contentsResponseFuture, 20.seconds)
   }
-  
-  def getFileNameTimestampFromGithub(fileName: String, dirPath: String): Option[String] = {
+
+  /**
+   * Get timestamp from the name of a file whose prefix has been passed in.
+   * 
+   * @param fileNamePrefix
+   * @param dirPath
+   * @return
+   */
+  def getFileNameTimestampFromGithub(fileNamePrefix: String, dirPath: String): Option[String] = {
     getDirContents(dirPath = dirPath) match {
       case Right(GHResult(contents, status, headers)) =>
         // Assuming that the first commit is the latest. TODO: Do something more robust.
-        val fileContent = contents.filter(_.name.startsWith(fileName))
+        val fileContent = contents.filter(_.name.startsWith(fileNamePrefix))
         if (fileContent.headOption.isEmpty) {
           return None
         } else {
           return tarProcessor.getTimestampFromName(fileContent.headOption.get.name)
         }
-      case Left(e) => log error s"${e.getMessage}: ${getGitPath(dirPath)}, ${dirPath}, ${fileName}"
+      case Left(e) => log error s"${e.getMessage}: ${getGitPath(dirPath)}, ${dirPath}, ${fileNamePrefix}"
         return None
     }
   }
@@ -97,6 +104,7 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
     }
   }
 }
+
 
 object GithubRepo {
 

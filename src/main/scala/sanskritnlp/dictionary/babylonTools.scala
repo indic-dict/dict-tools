@@ -26,10 +26,14 @@ object babylonTools {
   val log: Logger = LoggerFactory.getLogger("babylonTools")
   
   def addStandardHeadwords(infileStr: String) = {
-    val headwordTransformer = (headwords_original: Array[String]) => (
+    val headwordTransformerBasic = (headwords_original: Array[String]) => (
       headwordTransformers.addOptitransFromDevanaagarii(
         headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwordTransformers.addDevanaagariiFromOtherIndic(headwords_original)))
       ).filterNot(_.isEmpty).distinct
+    var headwordTransformer = headwordTransformerBasic
+    if (infileStr.contains("sa-head")) {
+       headwordTransformer = (headwords_original: Array[String]) => headwordTransformers.addIndicScriptsFromDevanaagarii(headwordTransformerBasic(headwords_original))
+    }
     fixHeadwords(infileStr = infileStr, outputExt = "babylon_final", headwordTransformer=headwordTransformer)
   }
 

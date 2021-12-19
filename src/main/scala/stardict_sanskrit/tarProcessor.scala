@@ -1,12 +1,9 @@
 package stardict_sanskrit
 
-import java.io.{File, PrintWriter}
-import java.nio.file.{Path, Paths}
-
 import org.slf4j.{Logger, LoggerFactory}
 
+import java.io.{File, PrintWriter}
 import scala.io.Source
-import scala.sys.process._
 
 
 object tarProcessor extends BatchProcessor {

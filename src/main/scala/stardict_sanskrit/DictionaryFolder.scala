@@ -94,8 +94,8 @@ class DictionaryFolder(val name: String) {
   def gitDictFileMatchesSource(githubRepo: GithubRepo, sourceFile: File=babylonFile.get, sourceFileBranch: Option[String]=None, outputType: String): Boolean = {
     val babylonUpdateTimestamp = githubRepo.getGithubUpdateTime(filePath = sourceFile.getAbsolutePath, branch = sourceFileBranch)
     if (babylonUpdateTimestamp.isDefined) {
-      val gitFileTimestamp = githubRepo.getFileNameTimestampFromGithub(fileName = this.name, dirPath = this.getOutputDirFile(outputType = outputType).getAbsolutePath)
-      log debug(s"babylon: ${babylonUpdateTimestamp}, git file: ${gitFileTimestamp}, sourceFIle: ${sourceFile}")
+      val gitFileTimestamp = githubRepo.getFileNameTimestampFromGithub(fileNamePrefix = this.name, dirPath = this.getOutputDirFile(outputType = outputType).getAbsolutePath)
+      log debug(s"babylon: ${babylonUpdateTimestamp}, output file on github: ${gitFileTimestamp}, sourceFIle: ${sourceFile}")
       return babylonUpdateTimestamp == gitFileTimestamp
     } else {
       return false
