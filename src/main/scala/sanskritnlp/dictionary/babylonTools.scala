@@ -32,7 +32,7 @@ object babylonTools {
       ).filterNot(_.isEmpty).distinct
     var headwordTransformer = headwordTransformerBasic
     if (infileStr.contains("sa-head")) {
-       headwordTransformer = (headwords_original: Array[String]) => headwordTransformers.addIndicScriptsFromDevanaagarii(headwordTransformerBasic(headwords_original))
+       headwordTransformer = (headwords_original: Array[String]) => headwordTransformers.addLatinScriptsFromDevanaagarii(headwordTransformerBasic(headwords_original))
     }
     fixHeadwords(infileStr = infileStr, outputExt = "babylon_final", headwordTransformer=headwordTransformer)
   }

@@ -36,18 +36,21 @@ object headwordTransformers{
     }))
 
 
-  def addIndicScriptsFromDevanaagarii(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
-    x => try {
-      transliterator.transliterate(x, "dev", "iast")
-    } catch {
-      case ex: Exception => {
-        val sw = new StringWriter
-        ex.printStackTrace(new PrintWriter(sw))
-        log.error(sw.toString)
-        log.error(x)
-        ""
+  def addLatinScriptsFromDevanaagarii(headwords_original:Array[String]) = {
+    def trans(x: String, destScript: String) =
+      try {
+        transliterator.transliterate(x, "dev", destScript)
+      } catch {
+        case ex: Exception => {
+          val sw = new StringWriter
+          ex.printStackTrace(new PrintWriter(sw))
+          log.error(sw.toString)
+          log.error(x)
+          ""
+        }
       }
-    }))
+    headwords_original ++ headwords_original.map(x => trans(x, "iast")) ++ headwords_original.map(x => trans(x, "iso"))
+  }
 
   def addNonAnsusvaaraVariantsFromDevanaagarii(headwords_original:Array[String]) = (headwords_original ++ headwords_original.map(
     x => try {
