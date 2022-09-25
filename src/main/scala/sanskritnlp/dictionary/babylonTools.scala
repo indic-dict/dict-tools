@@ -31,7 +31,7 @@ object babylonTools {
         headwordTransformers.addNonAnsusvaaraVariantsFromDevanaagarii(headwordTransformers.addDevanaagariiFromOtherIndic(headwords_original)))
       ).filterNot(_.isEmpty).distinct
     var headwordTransformer = headwordTransformerBasic
-    if (infileStr.contains("sa-head")) {
+    if (infileStr.contains("sa-head") || infileStr.contains("sanskrit-kAvya") || infileStr.contains("sanskrit-vyAkaraNa")) {
        headwordTransformer = (headwords_original: Array[String]) => headwordTransformers.addLatinScriptsFromDevanaagarii(headwordTransformerBasic(headwords_original))
     }
     fixHeadwords(infileStr = infileStr, outputExt = "babylon_final", headwordTransformer=headwordTransformer)
