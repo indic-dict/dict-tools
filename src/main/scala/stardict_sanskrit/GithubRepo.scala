@@ -2,18 +2,17 @@ package stardict_sanskrit
 
 import java.io.File
 import java.net.URL
-
 import akka.actor.ActorSystem
 import cats.data.NonEmptyList
-import github4s.Github
-import github4s.Github._
-import github4s.GithubResponses.{GHResponse, GHResult}
-import github4s.free.domain.{Commit, Content}
-import github4s.jvm.Implicits._
+import github4s.{GHResponse, Github}
+import github4s.domain.{Commit, Content}
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import org.http4s.client.{Client, JavaNetClientBuilder}
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.RichHttpAkkaClient
-import scalaj.http.HttpResponse
 
+import java.net.http.HttpResponse
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -21,13 +20,15 @@ import scala.concurrent.duration._
 
 class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken: Option[String] = None, branch: Option[String]=None) {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
-
-  val githubClient: Github = Github(githubToken)
+  val httpClient: Client[IO] = {
+    JavaNetClientBuilder[IO].create // You can use any http4s backend
+  }
+  val githubClient: Github[IO] = Github(httpClient, githubToken)
   
   def getGitPath(filePath: String) = filePath.replaceFirst(s".+/${githubRepo}/", "")
 
   def getDirContents(dirPath: String): GHResponse[NonEmptyList[Content]] = {
-    val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = dirPath)), ref = branch).exec[Future, HttpResponse[String]]()
+    val contentsResponseFuture = githubClient.repos.getContents(owner = githubOrg, repo = githubRepo, path = (getGitPath(filePath = dirPath)), ref = branch)
     return Await.result(contentsResponseFuture, 20.seconds)
   }
 
@@ -96,7 +97,7 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
           return None
         } else {
           // Assuming that the first commit is the latest. TODO: Do something more robust.
-          val lastestCommit: Commit = commits.head
+          val lastestCommit = commits.head
           return Some(lastestCommit.date.replace("T", "_").replace(":", "-"))
         }
       case Left(e) => log error e.getMessage
