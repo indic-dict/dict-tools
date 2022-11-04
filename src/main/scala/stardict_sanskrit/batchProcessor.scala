@@ -86,7 +86,7 @@ object batchProcessor extends BatchProcessor {
         return false
       }
     } catch {
-      case _ => return false
+      case _: Throwable => return false
     } 
     return true
   }
