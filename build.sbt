@@ -17,17 +17,9 @@ libraryDependencies ++= Seq(
   ,"com.typesafe.akka" %% "akka-actor" % akkaVersion  // We use Akka Actor model for concurrent processing.
   ,"org.apache.commons" % "commons-csv" % "1.6"
   ,"org.apache.commons" % "commons-compress" % "1.18"
-  , ("com.github.sanskrit-coders" % "indic-transliteration_2.12" % "1.31")
-    .exclude("org.json4s", "json4s-ast_2.12")
-    .exclude("com.typesafe.akka", "akka-actor_2.12")
-    .exclude("org.scalactic", "scalactic_2.12")
-    .exclude("org.scala-lang.modules", "scala-java8-compat_2.12")
+  , ("com.github.sanskrit-coders" % "indic-transliteration" % "1.33")
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
-  , ("com.github.sanskrit-coders" % "scala-utils_2.12" % "1.16")
-    .exclude("org.json4s", "json4s-ast_2.12")
-    .exclude("com.typesafe.akka", "akka-actor_2.12")
-    .exclude("org.scalactic", "scalactic_2.12")
-    .exclude("org.scala-lang.modules", "scala-java8-compat_2.12")
+  , ("com.github.sanskrit-coders" % "scala-utils" % "1.20")
   ,  "com.47deg" %% "github4s" % "0.31.2"
   , "com.github.scopt" %% "scopt" % "4.0.1"
   , "com.ibm.icu" % "icu4j" % "68.2"
