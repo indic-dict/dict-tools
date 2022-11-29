@@ -1,5 +1,5 @@
 name := "dict-tools"
-
+ThisBuild / versionScheme := Some("strict")
 scalaVersion := "2.13.10"
 
 // The library versions should be as mutually compatible as possible - else there will be weird runtime errors.
@@ -7,8 +7,12 @@ scalaVersion := "2.13.10"
 val akkaVersion = "2.7.0"
 
 
-resolvers += Resolver.sonatypeRepo("releases")
-resolvers += Resolver.sonatypeRepo("snapshots")
+resolvers +=
+  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+resolvers +=
+  "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases"
+resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+
 
 libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3"
@@ -17,9 +21,9 @@ libraryDependencies ++= Seq(
   ,"com.typesafe.akka" %% "akka-actor" % akkaVersion  // We use Akka Actor model for concurrent processing.
   ,"org.apache.commons" % "commons-csv" % "1.6"
   ,"org.apache.commons" % "commons-compress" % "1.18"
-  , ("com.github.sanskrit-coders" % "indic-transliteration" % "1.33")
+//  , ("com.github.sanskrit-coders" % "indic-transliteration" % "1.33")
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
-  , ("com.github.sanskrit-coders" % "scala-utils" % "1.20")
+//  , ("com.github.sanskrit-coders" % "scala-utils" % "1.20")
   ,  "com.47deg" %% "github4s" % "0.31.2"
   , "com.github.scopt" %% "scopt" % "4.0.1"
   , "com.ibm.icu" % "icu4j" % "68.2"
@@ -34,27 +38,14 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.14" % "test"
 
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
-
-scmInfo := Some(
-  ScmInfo(
-    url("https://github.com/indic-dict/dict-tools"),
-    "scm:git@github.com:indic-dict/dict-tools.git"
-  )
-)
 
 assembly / assemblyOutputPath := file("bin/artifacts/dict-tools.jar")
 assembly / mainClass := Some("stardict_sanskrit.commandInterface")
 
 
-useGpg := true
 publishMavenStyle := true
-publishTo := Some(
-  if (isSnapshot.value)
-    Opts.resolver.sonatypeSnapshots
-  else
-    Opts.resolver.sonatypeStaging
-)
+publishTo := sonatypePublishToBundle.value
+
 
 import ReleaseTransformations._
 
