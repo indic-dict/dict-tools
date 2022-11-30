@@ -23,8 +23,8 @@ libraryDependencies ++= Seq(
   ,"org.apache.commons" % "commons-compress" % "1.18"
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
   // If the below is outdated, an option is to just comment the line out and include the latest jars in the lib folder.
-  , ("com.github.sanskrit-coders" % "indic-transliteration" % "1.33")
-  , ("com.github.sanskrit-coders" % "scala-utils" % "1.20")
+  , ("com.github.sanskrit-coders" %% "indic-transliteration" % "1.33")
+  , ("com.github.sanskrit-coders" %% "scala-utils" % "1.25.0")
   ,  "com.47deg" %% "github4s" % "0.31.2"
   , "com.github.scopt" %% "scopt" % "4.0.1"
   , "com.ibm.icu" % "icu4j" % "68.2"
