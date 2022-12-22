@@ -5,6 +5,7 @@ scalaVersion := "2.13.10"
 // The library versions should be as mutually compatible as possible - else there will be weird runtime errors.
 // We just use whatever we found compatible with akka-http-core in scala-utils_2.13
 val akkaVersion = "2.7.0"
+val akkaHttpVersion = "10.4.0"
 
 
 resolvers +=
@@ -24,7 +25,7 @@ libraryDependencies ++= Seq(
   , "com.github.sanskrit-coders" % "StarDict" % "1.1"
   // If the below is outdated, an option is to just comment the line out and include the latest jars in the lib folder.
   , ("com.github.sanskrit-coders" %% "indic-transliteration" % "1.33")
-  , ("com.github.sanskrit-coders" %% "scala-utils" % "1.25.0")
+  , ("com.github.sanskrit-coders" %% "scala-utils" % "1.25.1")
   ,  "com.47deg" %% "github4s" % "0.31.2"
   , "com.github.scopt" %% "scopt" % "4.0.1"
   , "com.ibm.icu" % "icu4j" % "68.2"
