@@ -43,7 +43,10 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.14" % "test"
 
 assembly / assemblyOutputPath := file("bin/artifacts/dict-tools.jar")
 assembly / mainClass := Some("stardict_sanskrit.commandInterface")
-
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", _*) => MergeStrategy.discard
+  case _                        => MergeStrategy.first
+}
 
 publishMavenStyle := true
 publishTo := sonatypePublishToBundle.value
