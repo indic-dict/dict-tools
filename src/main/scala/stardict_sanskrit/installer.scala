@@ -1,24 +1,20 @@
 package stardict_sanskrit
 
-import akka.pattern.ask
-
-import java.nio.file.{Files, Paths}
-import java.util.concurrent.TimeUnit
-import akka.actor.{Actor, ActorLogging, ActorSystem, Props, Status}
+import akka.actor.{Actor, ActorLogging, ActorSystem, Props}
 import akka.http.scaladsl.Http
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings, IOResult}
-import org.slf4j.{Logger, LoggerFactory}
-import sanskrit_coders.{RichHttpAkkaClient, Utils}
-import akka.http.scaladsl.model._
+import akka.pattern.ask
 import akka.util.Timeout
-import de.heikoseeberger.akkahttpjson4s.Json4sSupport.ShouldWritePretty.False
-
-import sys.process._
-import java.net.URL
-import java.io.{File, FileNotFoundException}
-import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import org.slf4j.{Logger, LoggerFactory}
 import sanskritnlp.dictionary.StardictTar
+import sanskrit_coders.RichHttpAkkaClient
+import sanskrit_coders.Utils
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+
+import java.io.{File, FileNotFoundException}
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
+import scala.concurrent.Future
+import scala.util.Success
 
 case class DictInfo(dictTarUrl: String, destinationFolder: String, var dictName: String = null, var tarFilename : String = null, var timestamp: Long = 0) {
   tarFilename = dictTarUrl.split("/").last
@@ -71,10 +67,8 @@ object DictIndex {
 
 
 class InstallerActor extends Actor with ActorLogging {
-  import context.dispatcher // Provides ExecutionContext - required below.
-  import akka.pattern.pipe // For pipeTo() below.
-
-  final implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(context.system))
+  import akka.pattern.pipe
+  import context.dispatcher // For pipeTo() below.
 
   private val simpleClient: HttpRequest => Future[HttpResponse] = Http(context.system).singleRequest(_: HttpRequest)
   private val redirectingClient: HttpRequest => Future[HttpResponse] = RichHttpAkkaClient.httpClientWithRedirect(simpleClient)(context.system)
