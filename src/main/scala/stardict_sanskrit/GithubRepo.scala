@@ -11,6 +11,7 @@ import org.http4s.client.{Client, JavaNetClientBuilder}
 import org.slf4j.{Logger, LoggerFactory}
 import sanskrit_coders.RichHttpAkkaClient
 
+import java.lang
 import java.net.http.HttpResponse
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -24,7 +25,7 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
   val githubClient: Github[IO] = Github(httpClient, githubToken)
   
   def getGitPath(filePath: String) = {
-    filePath.replaceFirst(s".+/${githubRepo}/", "")
+    filePath.replaceFirst(s".+/$githubRepo/", "")
   }
 
   def getDirContents(dirPath: String): Either[GHError, NonEmptyList[Content]] = {
@@ -78,9 +79,16 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
           val destPath = new File(dirPath, tarContent.head.name)
           log info s"Downloading ${tarContent.head.download_url.get} to ${destPath}"
           implicit val actorSystem = ActorSystem("HttpAkka")
-          Await.ready(RichHttpAkkaClient.dumpToFile(tarContent.head.download_url.get, destPath.toString), Duration(3, MINUTES))
-          log info s"Downloaded ${tarContent.head.download_url.get} to ${destPath}. Now terminating actor system."
-          actorSystem.terminate()
+          try {
+            Await.ready(RichHttpAkkaClient.dumpToFile(tarContent.head.download_url.get, destPath.toString), Duration(3, MINUTES))
+            log info s"Downloaded ${tarContent.head.download_url.get} to ${destPath}. Now terminating actor system."
+          } catch {
+            case e : Exception => log error e.getMessage
+              e.printStackTrace()
+          } finally {
+            log info "Terminating actor system"
+            actorSystem.terminate()
+          }
           
 //          new URL(tarContent.head.download_url.get) #> destPath !!
         }
@@ -89,7 +97,7 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
   }
   
   def getGithubUpdateTime(filePath: String, branch:Option[String]=None): Option[String] = {
-    val relativePath = filePath.replaceFirst(s".+${githubRepo}/", "")
+    val relativePath = filePath.replaceFirst(s".+$githubRepo/", "")
     import cats.effect.unsafe.implicits.global
     val commitsResponse: Either[GHError, List[Commit]] = githubClient.repos.listCommits(owner = githubOrg, repo = githubRepo, path=Some(relativePath), sha=branch).unsafeRunSync().result
     commitsResponse match {
