@@ -24,7 +24,7 @@ class StardictTar(filePath: String) {
   }
 
   def extract(destinationPath: String): Unit = {
-    log.info(s"Extracting ${filePath}")
+    log.info(s"Extracting ${filePath} to ${destinationPath}")
     var archiveInputStream = inputStreamFromArchive()
     import java.io.IOException
     import java.nio.file.Files
