@@ -1,6 +1,6 @@
 name := "dict-tools"
 ThisBuild / versionScheme := Some("strict")
-scalaVersion := "2.13.10"
+scalaVersion := "2.13.12"
 
 // The library versions should be as mutually compatible as possible - else there will be weird runtime errors.
 // We just use whatever we found compatible with akka-http-core in scala-utils_2.13

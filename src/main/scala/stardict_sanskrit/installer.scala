@@ -14,7 +14,7 @@ import java.io.{File, FileNotFoundException}
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 case class DictInfo(dictTarUrl: String, destinationFolder: String, var dictName: String = null, var tarFilename : String = null, var timestamp: Long = 0) {
   tarFilename = dictTarUrl.split("/").last
@@ -95,7 +95,9 @@ class InstallerActor extends Actor with ActorLogging {
             new java.io.File(destinationTarPath.toString).delete()
             Success(s"Done with $dict")
           } else {
-            throw result.getError
+            // In case of download failure, we want to proceed to the next dict.
+//            throw result.getError
+            Failure(result.getError)
           }
         })
         downloadAndExtractFuture.pipeTo(sender())
