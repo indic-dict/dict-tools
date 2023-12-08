@@ -203,7 +203,7 @@ class DictionaryFolder(val name: String) {
 
   def makeTar(filePatternToTar: String=tarProcessor.filePatternToTar, timestamp: Option[String] = None) = {
     if (getTarDirFile.exists()) {
-      getTarDirFile.listFiles.map(_.getCanonicalFile).filter(_.getName.matches(s".*/?${dirName}.*.tar.gz")).foreach(x => {
+      getTarDirFile.listFiles.map(_.getCanonicalFile).filter(_.getName.matches(s".*/?${dirName}__.*.tar.gz")).foreach(x => {
         log info "Deleting " + x.getAbsolutePath
         tarFile.get.delete()
       })

@@ -48,7 +48,7 @@ object DictIndex {
   def getUrlsFromIndexMd(url: String): Array[String] = {
     import scala.io.Source
     try {
-      Source.fromURL(url).mkString.split("\n").filter(x => x.startsWith("<") || x.startsWith("http") || x.startsWith("ftp")).map(_.replaceAll("[<>]", "").strip())
+      Source.fromURL(url).mkString.split("\n").filter(x => x.startsWith("<") || x.startsWith("http") || x.startsWith("ftp")).map(_.replaceAll("[<>]", "").trim())
     } catch {
       case e: FileNotFoundException => log.error(s"Could not get ${url}")
         Array()
