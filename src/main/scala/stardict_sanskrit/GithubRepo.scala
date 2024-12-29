@@ -45,11 +45,11 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
     getDirContents(dirPath = dirPath) match {
       case Right(contents) =>
         // Assuming that the first commit is the latest. TODO: Do something more robust.
-        val fileContent = contents.filter(_.name.startsWith(fileNamePrefix + "__"))
-        if (fileContent.headOption.isEmpty) {
+        val file = contents.filter(_.name.startsWith(fileNamePrefix + "__"))
+        if (file.headOption.isEmpty) {
           return None
         } else {
-          return tarProcessor.getTimestampFromName(fileContent.headOption.get.name)
+          return tarProcessor.getTimestampFromName(file.headOption.get.name)
         }
       case Left(e) => log error s"${e.getMessage}: ${getGitPath(dirPath)}, ${dirPath}, ${fileNamePrefix}"
         return None
