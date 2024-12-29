@@ -45,7 +45,7 @@ class GithubRepo(val githubOrg: String, val githubRepo: String, val githubToken:
     getDirContents(dirPath = dirPath) match {
       case Right(contents) =>
         // Assuming that the first commit is the latest. TODO: Do something more robust.
-        val fileContent = contents.filter(_.name.startsWith(fileNamePrefix))
+        val fileContent = contents.filter(_.name.startsWith(fileNamePrefix + "__"))
         if (fileContent.headOption.isEmpty) {
           return None
         } else {
