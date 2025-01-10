@@ -147,8 +147,6 @@ object batchProcessor extends BatchProcessor {
 
 
   def main(args: Array[String]): Unit = {
-    val configFileContents = Source.fromResource("conf.local").mkString
-    var config = ConfigFactory.parseString(configFileContents)
     val dictPattern = ".*"
     def vyAkaraNaTest(): Unit = {
       var workingDir = "/home/vvasuki/indic-dict/stardict-sanskrit-vyAkaraNa"
@@ -157,16 +155,16 @@ object batchProcessor extends BatchProcessor {
 //    vyAkaraNaTest()
     
     def sinhalaTest(): Unit = {
-      var workingDir = "/home/vvasuki/indic-dict/stardict-sinhala/si-head/en-entries"
+      var workingDir = "/home/vvasuki/gitland/indic-dict/stardict/stardict-sinhala/si-head/en-entries"
       makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
 //      makeSlobs(dictPattern = ".*", "stardict-babylon", baseUrl = "https://github.com/indic-dict/stardict-sinhala/raw/gh-pages/si-head/en-entries/tars", githubToken = Some(config.getString("github_token")), overwrite = false, baseDir = workingDir)
     }
 //    sinhalaTest()
 
     def sanskritTest(from: String="sa", to: String="en"): Unit = {
-      var workingDir = s"/home/vvasuki/indic-dict/stardict-sanskrit/${from}-head/${to}-entries/"
+      var workingDir = s"/home/vvasuki/gitland/indic-dict/stardict/stardict-sanskrit/${from}-head/${to}-entries/"
 //      makeIndicStardictTar(dictPattern = ".*", babylonBinary = "stardict-babylon", tarBaseUrl = s"https://github.com/indic-dict/stardict-sanskrit/raw/gh-pages/${from}-head/${to}-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
-      makeSlobs(dictPattern = ".*", babylonBinary = "stardict-babylon", baseUrl = s"https://github.com/indic-dict/stardict-sanskrit/raw/gh-pages/${from}-head/${to}-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
+//      makeSlobs(dictPattern = ".*", babylonBinary = "stardict-babylon", baseUrl = s"https://github.com/indic-dict/stardict-sanskrit/raw/gh-pages/${from}-head/${to}-entries/tars", githubToken = None, overwrite = true, baseDir = workingDir)
     }
     sanskritTest(from = "sa", to = "other-indic")
   }
