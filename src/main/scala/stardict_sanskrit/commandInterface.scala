@@ -19,6 +19,9 @@ case class CommandConfig(mode: Option[String]=None,
                         )
 
 object commandInterface {
+  if (System.getProperty("java.net.preferIPv6Addresses") == null) {
+    System.setProperty("java.net.preferIPv6Addresses", "true")
+  }
   private val log = LoggerFactory.getLogger(getClass.getName)
 
   def main(args: Array[String]): Unit = {

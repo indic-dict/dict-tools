@@ -1,7 +1,7 @@
 package sanskritnlp.dictionary
 
 import java.io.{BufferedInputStream, File, FileInputStream, FileNotFoundException}
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{AtomicMoveNotSupportedException, Files, Path, Paths, StandardCopyOption}
 import java.util.Comparator
 
 import org.apache.commons.compress.archivers.{ArchiveException, ArchiveStreamFactory}
@@ -73,10 +73,22 @@ class StardictTar(filePath: String) {
             if (Files.exists(f.toPath) && Files.isDirectory(f.toPath)) {
               deleteRecursively(f.toPath)
             }
-            val o = Files.newOutputStream(f.toPath)
-            try
-              IOUtils.copy(archiveInputStream, o)
-            finally if (o != null) o.close()
+            val targetParent = if (parent != null) parent.toPath else destDir.toPath
+            val tmpFile = Files.createTempFile(targetParent, "." + f.getName + ".", ".tmp")
+            try {
+              val o = Files.newOutputStream(tmpFile)
+              try
+                IOUtils.copy(archiveInputStream, o)
+              finally if (o != null) o.close()
+              try {
+                Files.move(tmpFile, f.toPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+              } catch {
+                case _: AtomicMoveNotSupportedException =>
+                  Files.move(tmpFile, f.toPath, StandardCopyOption.REPLACE_EXISTING)
+              }
+            } finally {
+              Files.deleteIfExists(tmpFile)
+            }
           }
         }
         entry = archiveInputStream.getNextEntry

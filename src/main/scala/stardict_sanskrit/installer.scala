@@ -10,7 +10,8 @@ import sanskrit_coders.RichHttpAkkaClient
 import sanskrit_coders.Utils
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 
-import java.io.{File, FileNotFoundException}
+import java.io.{File, IOException}
+import java.net.{HttpURLConnection, URL}
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
@@ -45,12 +46,44 @@ case class DictIndex(indexUrl: String, downloadPathPrefix: String, var downloadP
 
 object DictIndex {
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
-  def getUrlsFromIndexMd(url: String): Array[String] = {
+  private val ConnectTimeoutMs = 15000
+  private val ReadTimeoutMs = 20000
+
+  private def readTextWithTimeouts(urlStr: String, redirectsLeft: Int = 5): String = {
     import scala.io.Source
+    val conn = new URL(urlStr).openConnection()
+    conn.setConnectTimeout(ConnectTimeoutMs)
+    conn.setReadTimeout(ReadTimeoutMs)
+    conn match {
+      case httpConn: HttpURLConnection =>
+        httpConn.setInstanceFollowRedirects(false)
+        httpConn.setRequestProperty("User-Agent", "dict-tools/1.0")
+        val status = httpConn.getResponseCode
+        if ((status / 100) == 3 && redirectsLeft > 0) {
+          val location = httpConn.getHeaderField("Location")
+          httpConn.disconnect()
+          if (location != null && location.nonEmpty) {
+            val nextUrl = new URL(new URL(urlStr), location).toString
+            return readTextWithTimeouts(nextUrl, redirectsLeft - 1)
+          }
+        }
+      case _ => ()
+    }
+    val stream = conn.getInputStream
+    val source = Source.fromInputStream(stream, "UTF-8")
     try {
-      Source.fromURL(url).mkString.split("\n").filter(x => x.startsWith("<") || x.startsWith("http") || x.startsWith("ftp")).map(_.replaceAll("[<>]", "").trim())
+      source.mkString
+    } finally {
+      source.close()
+    }
+  }
+
+  def getUrlsFromIndexMd(url: String): Array[String] = {
+    try {
+      readTextWithTimeouts(url).split("\n").filter(x => x.startsWith("<") || x.startsWith("http") || x.startsWith("ftp")).map(_.replaceAll("[<>]", "").trim())
     } catch {
-      case e: FileNotFoundException => log.error(s"Could not get ${url}")
+      case e: IOException =>
+        log.error(s"Could not get ${url}: ${e.getMessage}")
         Array()
     }
   }
@@ -107,6 +140,9 @@ class InstallerActor extends Actor with ActorLogging {
 }
 
 object installer {
+  if (System.getProperty("java.net.preferIPv6Addresses") == null) {
+    System.setProperty("java.net.preferIPv6Addresses", "true")
+  }
   private val log: Logger = LoggerFactory.getLogger(getClass.getName)
   val system = ActorSystem("installerActorSystem")
 
